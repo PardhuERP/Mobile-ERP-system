@@ -29,6 +29,7 @@ body{
   display:grid;
   grid-template-columns:repeat(2,1fr);
   gap:15px;
+  margin-bottom:20px;
 }
 .card{
   background:#fff;
@@ -41,6 +42,18 @@ body{
 .card h3{
   margin:0;
   font-size:16px;
+}
+.section-title{
+  margin:15px 0 10px;
+  font-size:18px;
+}
+.product{
+  background:#fff;
+  padding:10px;
+  margin-bottom:8px;
+  border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+  font-size:14px;
 }
 .logout{
   margin-top:20px;
@@ -62,81 +75,106 @@ body{
 </div>
 
 <div class="container">
-  <h3>Products (Live)</h3>
-<div id="productList">Loading...</div>
-  <div class="grid">
 
+  <!-- DASHBOARD CARDS -->
+  <div class="grid">
     <div class="card" onclick="alert('Products – next step')">
       <h3>Products</h3>
     </div>
-
     <div class="card" onclick="alert('Stock – next step')">
       <h3>Stock</h3>
     </div>
-
     <div class="card" onclick="alert('Orders – next step')">
       <h3>Orders</h3>
     </div>
-
     <div class="card" onclick="alert('Reports – next step')">
       <h3>Reports</h3>
     </div>
-
     <div class="card adminOnly" onclick="alert('Settings – admin only')">
       <h3>Settings</h3>
     </div>
-
   </div>
+
+  <!-- LIVE PRODUCTS -->
+  <div class="section-title">Products (Live)</div>
+  <div id="productList">Loading...</div>
 
   <div class="logout" onclick="logout()">Logout</div>
 </div>
 
 <script>
-  const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
+/* =========================
+   ROLE CHECK (FIRST)
+========================= */
+const role = localStorage.getItem("role");
+if(!role){
+  window.location.href="index.html";
+}
+
+document.getElementById("roleText").innerText =
+  role === "admin" ? "Admin Access" : "Staff Access";
+
+if(role !== "admin"){
+  document.querySelectorAll(".adminOnly")
+    .forEach(e => e.style.display="none");
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href="index.html";
+}
+
+/* =========================
+   GOOGLE SHEET CONFIG
+========================= */
+const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
 const SHEET_NAME = "Products";
 
-const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+const API_URL =
+  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
+/* =========================
+   FETCH & DISPLAY PRODUCTS
+========================= */
 fetch(API_URL)
   .then(res => res.text())
   .then(text => {
-    const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
-    const rows = json.table.rows;
+    const json = JSON.parse(
+      text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
+    );
 
+    const rows = json.table.rows;
     let html = "";
+
     rows.forEach(r => {
-      if(r.c[5] && r.c[5].v === "YES"){
+      if(!r.c) return;
+
+      const active = r.c[5]?.v;
+      if(active === "YES"){
+        const name = r.c[1]?.v || "Item";
+        const price = r.c[2]?.v || 0;
+        const stock = r.c[3]?.v || 0;
+        const category = r.c[4]?.v || "-";
+
         html += `
-          <div style="background:#fff;padding:10px;margin:8px 0;border-radius:8px">
-            <b>${r.c[1].v}</b><br>
-            Price: ₹${r.c[2].v}<br>
-            Stock: ${r.c[3].v}
-          </div>`;
+          <div class="product">
+            <b>${name}</b><br>
+            Price: ₹${price}<br>
+            Stock: ${stock}<br>
+            Category: ${category}
+          </div>
+        `;
       }
     });
 
-    document.getElementById("productList").innerHTML = html || "No active products";
+    document.getElementById("productList").innerHTML =
+      html || "No active products";
+
   })
-  .catch(()=>{
-    document.getElementById("productList").innerText="Error loading data";
+  .catch(() => {
+    document.getElementById("productList")
+      .innerText = "Error loading data";
   });
-  const role = localStorage.getItem("role");
-
-  if(!role){
-    window.location.href="index.html";
-  }
-
-  document.getElementById("roleText").innerText =
-    role === "admin" ? "Admin Access" : "Staff Access";
-
-  if(role !== "admin"){
-    document.querySelectorAll(".adminOnly").forEach(e => e.style.display="none");
-  }
-
-  function logout(){
-    localStorage.clear();
-    window.location.href="index.html";
-  }
 </script>
 
 </body>
