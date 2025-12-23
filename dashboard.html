@@ -62,6 +62,8 @@ body{
 </div>
 
 <div class="container">
+  <h3>Products (Live)</h3>
+<div id="productList">Loading...</div>
   <div class="grid">
 
     <div class="card" onclick="alert('Products – next step')">
@@ -90,6 +92,34 @@ body{
 </div>
 
 <script>
+  const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
+const SHEET_NAME = "Products";
+
+const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+
+fetch(API_URL)
+  .then(res => res.text())
+  .then(text => {
+    const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
+    const rows = json.table.rows;
+
+    let html = "";
+    rows.forEach(r => {
+      if(r.c[5] && r.c[5].v === "YES"){
+        html += `
+          <div style="background:#fff;padding:10px;margin:8px 0;border-radius:8px">
+            <b>${r.c[1].v}</b><br>
+            Price: ₹${r.c[2].v}<br>
+            Stock: ${r.c[3].v}
+          </div>`;
+      }
+    });
+
+    document.getElementById("productList").innerHTML = html || "No active products";
+  })
+  .catch(()=>{
+    document.getElementById("productList").innerText="Error loading data";
+  });
   const role = localStorage.getItem("role");
 
   if(!role){
