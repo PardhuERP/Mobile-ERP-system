@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pardhu ERP – Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f4f6f8;
+  margin:0;
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.login-box{
+  background:#fff;
+  width:90%;
+  max-width:360px;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.15);
+}
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+input{
+  width:100%;
+  padding:14px;
+  font-size:18px;
+  text-align:center;
+  border-radius:8px;
+  border:1px solid #ccc;
+  margin-bottom:15px;
+}
+button{
+  width:100%;
+  padding:14px;
+  background:#25D366;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:18px;
+  cursor:pointer;
+}
+.error{
+  color:red;
+  text-align:center;
+  display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+  <h2>Pardhu ERP</h2>
+  <input type="password" id="pin" placeholder="Enter PIN" maxlength="6">
+  <button onclick="login()">Login</button>
+  <p class="error" id="error">Invalid PIN</p>
+</div>
+
+<script src="auth.js"></script>
+</body>
+</html>
