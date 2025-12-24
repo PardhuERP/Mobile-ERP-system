@@ -118,9 +118,9 @@ document.getElementById("roleText").innerText =
   role === "admin" ? "Company Admin" : "Staff";
 
 if(modules !== "ALL"){
-  const allowed = modules.split(",").map(m=>m.trim());
+  const allowed = modules.split(",").map(m=>m.trim()toUpperCase());
   document.querySelectorAll(".card").forEach(c=>{
-    const name = c.innerText.trim();
+    const name = c.innerText.trim().toUplerCase();
     if(!allowed.includes(name)){
       c.style.display="none";
     }
