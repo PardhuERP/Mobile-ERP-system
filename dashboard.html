@@ -193,6 +193,31 @@ fetch(API_URL)
     console.error(e);
     document.getElementById("productList").innerText = "Error loading data";
   });
+  
+  <script>
+/* ===== DASHBOARD RBAC ===== */
+
+const modulesRaw = localStorage.getItem("modules") || "";
+const role = localStorage.getItem("role");
+
+if(!role){
+  window.location.href = "index.html";
+}
+
+const allowed =
+  modulesRaw === "all"
+  ? ["all"]
+  : modulesRaw.split(",").map(m => m.trim());
+
+document.querySelectorAll(".card").forEach(card => {
+  const mod = card.getAttribute("data-module");
+
+  if(allowed.includes("all")) return;
+
+  if(!allowed.includes(mod)){
+    card.style.display = "none";
+  }
+});
 </script>
 
 </body>
