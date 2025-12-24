@@ -107,16 +107,24 @@ body{
    ROLE CHECK (FIRST)
 ========================= */
 const role = localStorage.getItem("role");
+const modules = localStorage.getItem("modules") || "";
+
 if(!role){
   window.location.href="index.html";
 }
 
 document.getElementById("roleText").innerText =
-  role === "admin" ? "Admin Access" : "Staff Access";
+  role === "super" ? "Super Admin" :
+  role === "admin" ? "Company Admin" : "Staff";
 
-if(role !== "admin"){
-  document.querySelectorAll(".adminOnly")
-    .forEach(e => e.style.display="none");
+if(modules !== "ALL"){
+  const allowed = modules.split(",").map(m=>m.trim());
+  document.querySelectorAll(".card").forEach(c=>{
+    const name = c.innerText.trim();
+    if(!allowed.includes(name)){
+      c.style.display="none";
+    }
+  });
 }
 
 function logout(){
