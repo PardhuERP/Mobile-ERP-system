@@ -5,15 +5,17 @@ const API_URL =
 `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
 async function login(){
-  const u = document.getElementById("user").value.trim();
+  const u = document.getElementById("user").value.trim().toLowerCase();
   const p = document.getElementById("pin").value.trim();
   const err = document.getElementById("err");
+
+  err.style.display = "none";
 
   try{
     const res = await fetch(API_URL);
     const text = await res.text();
     const json = JSON.parse(
-      text.substring(text.indexOf('{'), text.lastIndexOf('}')+1)
+      text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
     );
 
     const rows = json.table.rows;
@@ -21,13 +23,13 @@ async function login(){
     for(const r of rows){
       if(!r.c) continue;
 
-      const username = r.c[0]?.v;
-      const pin = r.c[1]?.v;
-      const role = r.c[2]?.v;
-      const company = r.c[3]?.v;
-      const modules = r.c[4]?.v;
+      const username = (r.c[0]?.v || "").toString().trim().toLowerCase();
+      const pin = (r.c[1]?.v || "").toString().trim();
+      const role = r.c[2]?.v || "";
+      const company = r.c[3]?.v || "";
+      const modules = r.c[4]?.v || "";
 
-      if(username === u && pin.toSring() === p){
+      if(username === u && pin === p){
         localStorage.setItem("user", username);
         localStorage.setItem("role", role);
         localStorage.setItem("company", company);
@@ -37,8 +39,10 @@ async function login(){
       }
     }
 
-    err.style.display="block";
+    err.style.display = "block";
+
   }catch(e){
-    err.style.display="block";
+    console.error(e);
+    err.style.display = "block";
   }
 }
