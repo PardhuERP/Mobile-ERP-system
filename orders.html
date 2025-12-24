@@ -51,6 +51,21 @@ body{
 </style>
 </head>
 
+  <script>
+/* ===== PAGE RBAC: ORDERS ===== */
+const role = localStorage.getItem("role");
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
+
+if(!role){
+  window.location.href = "index.html";
+}
+
+if(modules !== "all" && !modules.split(",").includes("orders")){
+  alert("Access denied");
+  window.location.href = "dashboard.html";
+}
+</script>
+
 <body>
 
 <div class="header">Orders</div>
