@@ -69,6 +69,7 @@ body{
 ========================= */
 const role = localStorage.getItem("role");
 const company = localStorage.getItem("company");
+const currentUser = localStorage.getItem("user");
 
 if(!role){
   window.location.href = "index.html";
@@ -100,17 +101,21 @@ fetch(API_URL)
 
     let html = "";
 
-    json.table.rows.forEach(r => {
+    json.table.rows.forEach((r, index) => {
       if(!r.c) return;
 
-      const username = (r.c[0]?.v || "").toString();
-      const roleRow = (r.c[2]?.v || "").toString();
+      const username = (r.c[0]?.v || "").toString().toLowerCase();
+      const roleRow = (r.c[2]?.v || "").toString().toLowerCase();
       const companyRow = (r.c[3]?.v || "").toString().trim();
       const modules = (r.c[4]?.v || "").toString();
-      const status = (r.c[5]?.v || "").toString();
+      const status = (r.c[5]?.v || "").toString().toLowerCase();
 
       // Company isolation
       if(role !== "super" && companyRow !== company) return;
+
+      // Super admin cannot be disabled
+      const canToggle =
+        !(username === "pardhu" && roleRow === "super");
 
       html += `
         <div class="emp">
@@ -118,7 +123,18 @@ fetch(API_URL)
           Role: ${roleRow}<br>
           Company: ${companyRow}<br>
           Modules: ${modules}<br>
-          Status: ${status}
+          Status: <b style="color:${status === "active" ? "green" : "red"}">
+            ${status}
+          </b><br><br>
+
+          ${canToggle ? `
+            <button onclick="toggleUser('${username}', '${status}')"
+              style="padding:6px 12px;border:none;border-radius:6px;
+              background:${status === "active" ? "#e53935" : "#25D366"};
+              color:#fff">
+              ${status === "active" ? "Disable" : "Enable"}
+            </button>
+          ` : ""}
         </div>
       `;
     });
@@ -132,6 +148,26 @@ fetch(API_URL)
     document.getElementById("empList").innerText =
       "Error loading employees";
   });
+
+/* =========================
+   TOGGLE HANDLER
+========================= */
+function toggleUser(user, currentStatus){
+  const newStatus = currentStatus === "active" ? "disabled" : "active";
+
+  alert(
+`Manual step required (safe mode):
+
+Open Google Sheet → employees tab
+
+Find user: ${user}
+Change status to: ${newStatus}
+
+Save sheet.
+
+(Automation will be added later)`
+  );
+}
 </script>
 
 </body>
