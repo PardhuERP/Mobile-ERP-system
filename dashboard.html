@@ -78,21 +78,11 @@ body{
 
   <!-- DASHBOARD CARDS -->
   <div class="grid">
-    <div class="card" onclick="window.location.href='products.html'">
-      <h3>Products</h3>
-    </div>
-    <div class="card" onclick="alert('Stock – next step')">
-      <h3>Stock</h3>
-    </div>
-    <div class="card" onclick="window.location.href='orders.html'">
-      <h3>Orders</h3>
-    </div>
-    <div class="card" onclick="alert('Reports – next step')">
-      <h3>Reports</h3>
-    </div>
-    <div class="card adminOnly" onclick="alert('Settings – admin only')">
-      <h3>Settings</h3>
-    </div>
+   <div class="card" data-module="products"><h3>Products</h3></div>
+<div class="card" data-module="orders"><h3>Orders</h3></div>
+<div class="card" data-module="stock"><h3>Stock</h3></div>
+<div class="card" data-module="reports"><h3>Reports</h3></div>
+<div class="card" data-module="settings"><h3>Settings</h3></div> 
   </div>
 
   <!-- LIVE PRODUCTS -->
@@ -107,7 +97,16 @@ body{
    ROLE CHECK (FIRST)
 ========================= */
 const role = localStorage.getItem("role");
-const modules = localStorage.getItem("modules") || "";
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
+
+if(modules !== "all"){
+  const allowed = modules.split(",").map(m => m.trim());
+  document.querySelectorAll(".card").forEach(card => {
+    if(!allowed.includes(card.dataset.module)){
+      card.style.display = "none";
+    }
+  });
+}
 
 if(!role){
   window.location.href="index.html";
