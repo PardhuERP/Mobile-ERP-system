@@ -1,5 +1,5 @@
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
-const SHEET_NAME = "Users";
+const SHEET_NAME = "employees";
 
 const API_URL =
 `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`;
@@ -26,6 +26,9 @@ async function login(){
       const role = (r.c[2]?.v || "").toString().trim().toLowerCase();
       const company = (r.c[3]?.v || "").toString().trim();
       const modules = (r.c[4]?.v || "").toString().trim().toLowerCase();
+      const status = (r.c[5]?.v || "").toString().trim().toLowerCase();
+
+      if(status !== "active") continue;
 
       if(username === u && pin === p){
         localStorage.setItem("user", username);
