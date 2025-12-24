@@ -27,7 +27,7 @@ async function login(){
       const company = r.c[3]?.v;
       const modules = r.c[4]?.v;
 
-      if(username === u && pin === p){
+      if(username === u && pin.toSring() === p){
         localStorage.setItem("user", username);
         localStorage.setItem("role", role);
         localStorage.setItem("company", company);
