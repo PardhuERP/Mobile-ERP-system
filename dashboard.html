@@ -69,6 +69,16 @@ body{
 
 <body>
 
+<!-- ===== AUTH GUARD ===== -->
+<script>
+const user = localStorage.getItem("user");
+const role = localStorage.getItem("role");
+
+if(!user || !role){
+  window.location.href = "index.html";
+}
+</script>
+
 <div class="header">
   Pardhu ERP
   <div class="role" id="roleText"></div>
@@ -78,30 +88,34 @@ body{
 
   <!-- DASHBOARD CARDS -->
   <div class="grid">
-    <div class="card" data-module="products" onclick="window.location.href='products.html'">
+
+    <div class="card" data-module="products"
+         onclick="window.location.href='products.html'">
       <h3>Products</h3>
     </div>
 
-    <div class="card" data-module="stock" onclick="alert('Stock – next step')">
+    <div class="card" data-module="stocks">
       <h3>Stock</h3>
     </div>
 
-    <div class="card" data-module="orders" onclick="window.location.href='orders.html'">
+    <div class="card" data-module="orders"
+         onclick="window.location.href='orders.html'">
       <h3>Orders</h3>
     </div>
 
-    <div class="card" data-module="reports" onclick="alert('Reports – next step')">
+    <div class="card" data-module="reports">
       <h3>Reports</h3>
     </div>
 
-    <div class="card" data-module="settings" onclick="alert('Settings – admin only')">
+    <div class="card" data-module="settings">
       <h3>Settings</h3>
     </div>
-    
-    <div class="card" data-module="settings"
-     onclick="window.location.href='employees.html'">
-  <h3>Employees</h3>
+
+    <div class="card" data-module="employees"
+         onclick="window.location.href='employees.html'">
+      <h3>Employees</h3>
     </div>
+
   </div>
 
   <!-- LIVE PRODUCTS -->
@@ -111,122 +125,59 @@ body{
   <div class="logout" onclick="logout()">Logout</div>
 </div>
 
-  <script>
-/* ===== AUTH GUARD ===== */
-const user = localStorage.getItem("user");
-const role = localStorage.getItem("role");
-
-if(!user || !role){
-  window.location.href = "index.html";
-}
-</script>
-
 <script>
-/* =========================
-   RBAC CHECK
-========================= */
-const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules") || "").toLowerCase();
+/* ===== RBAC DASHBOARD ===== */
 
-if(!role){
-  window.location.href = "index.html";
-}
+const modulesRaw = (localStorage.getItem("modules") || "").toLowerCase();
+const allowed =
+  modulesRaw === "all"
+  ? ["all"]
+  : modulesRaw.split(",").map(m => m.trim());
 
 document.getElementById("roleText").innerText =
   role === "super" ? "Super Admin" :
   role === "admin" ? "Company Admin" : "Staff";
 
-if(modules !== "all"){
-  const allowed = modules.split(",").map(m => m.trim());
-  document.querySelectorAll(".card").forEach(card => {
-    if(!allowed.includes(card.dataset.module)){
-      card.style.display = "none";
-    }
-  });
-}
+document.querySelectorAll(".card").forEach(card => {
+  const mod = card.dataset.module;
+  if(allowed.includes("all")) return;
+  if(!allowed.includes(mod)){
+    card.style.display = "none";
+  }
+});
 
 function logout(){
   localStorage.clear();
   window.location.href = "index.html";
 }
 
-/* =========================
-   GOOGLE SHEET – PRODUCTS
-========================= */
+/* ===== LIVE PRODUCTS ===== */
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
-const SHEET_NAME = "Products"; // MUST match tab name exactly
+const SHEET_NAME = "Products";
 
-const API_URL =
-  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`;
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`)
+.then(res => res.text())
+.then(text => {
+  const json = JSON.parse(
+    text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
+  );
 
-/* =========================
-   FETCH & DISPLAY PRODUCTS
-========================= */
-fetch(API_URL)
-  .then(res => res.text())
-  .then(text => {
-    const json = JSON.parse(
-      text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
-    );
+  let html="";
+  json.table.rows.forEach(r=>{
+    if(!r.c) return;
+    if((r.c[6]?.v || "").toString().toLowerCase() !== "yes") return;
 
-    const rows = json.table.rows;
-    let html = "";
-
-    rows.forEach(r => {
-      if(!r.c) return;
-
-      // Columns:
-      // A id | B name | C price | D stock | E category | F image | G active
-      const active = r.c[6]?.v;
-      if(!active || active.toString().toLowerCase() !== "yes") return;
-
-      const name = r.c[1]?.v || "Item";
-      const price = r.c[2]?.v || 0;
-      const stock = r.c[3]?.v || 0;
-      const category = r.c[4]?.v || "-";
-
-      html += `
-        <div class="product">
-          <b>${name}</b><br>
-          Price: ₹${price}<br>
-          Stock: ${stock}<br>
-          Category: ${category}
-        </div>
-      `;
-    });
-
-    document.getElementById("productList").innerHTML =
-      html || "No active products";
-
-  })
-  .catch(e => {
-    console.error(e);
-    document.getElementById("productList").innerText = "Error loading data";
+    html += `
+      <div class="product">
+        <b>${r.c[1]?.v}</b><br>
+        Price: ₹${r.c[2]?.v}<br>
+        Stock: ${r.c[3]?.v}
+      </div>
+    `;
   });
-  
-  <script>
-/* ===== DASHBOARD RBAC ===== */
 
-const modulesRaw = localStorage.getItem("modules") || "";
-const role = localStorage.getItem("role");
-
-if(!role){
-  window.location.href = "index.html";
-}
-
-const allowed =
-  modulesRaw === "all"
-  ? ["all"]
-  : modulesRaw.split(",").map(m => m.trim());
-
-document.querySelectorAll(".card").forEach(card => {
-  const mod = card.getAttribute("data-module");
-
-  if(allowed.includes("all")) return;
-
-  if(!allowed.includes(mod)){
-    card.style.display = "none";
-  }
+  document.getElementById("productList").innerHTML =
+    html || "No active products";
 });
 </script>
 
