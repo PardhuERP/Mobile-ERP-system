@@ -53,27 +53,24 @@ body{
 
 <body>
 
-  <script>
+<script>
 /* ===== PAGE RBAC: ORDERS ===== */
 const role = localStorage.getItem("role");
 const modules = (localStorage.getItem("modules") || "").toLowerCase();
 
-if(!role){
-  window.location.href = "index.html";
+if (!role) {
+  window.location.replace("index.html");
 }
 
-if(modules !== "all" && !modules.split(",").includes("orders")){
-  alert("Access denied");
-  window.location.href = "dashboard.html";
+if (modules !== "all" && !modules.split(",").includes("orders")) {
+  window.location.replace("dashboard.html");
 }
 </script>
-
 
 <div class="header">Orders</div>
 
 <div class="container">
   <div class="back" onclick="history.back()">← Back</div>
-
   <div class="section-title">All Orders</div>
   <div id="orderList">Loading...</div>
 </div>
