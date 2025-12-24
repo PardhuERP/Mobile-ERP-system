@@ -57,20 +57,10 @@ body{
 
 <div class="container">
   <div id="empList">Loading...</div>
-  html += `
-  <div class="emp">
-    <b>${username}</b><br>
-    Role: ${roleRow}<br>
-    Company: ${companyRow}<br>
-    Modules: ${modules}<br>
-    Status: ${status}
-  </div>
-`;
 
   <div class="back" onclick="window.location.href='dashboard.html'">
     ⬅ Back to Dashboard
   </div>
-  
 </div>
 
 <script>
@@ -84,14 +74,13 @@ if(!role){
   window.location.href = "index.html";
 }
 
-// Only admin or super allowed
 if(role !== "admin" && role !== "super"){
   alert("Access denied");
   window.location.href = "dashboard.html";
 }
 
 /* =========================
-   GOOGLE SHEET – USERS
+   GOOGLE SHEET – EMPLOYEES
 ========================= */
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
 const SHEET_NAME = "employees";
@@ -118,8 +107,9 @@ fetch(API_URL)
       const roleRow = (r.c[2]?.v || "").toString();
       const companyRow = (r.c[3]?.v || "").toString().trim();
       const modules = (r.c[4]?.v || "").toString();
+      const status = (r.c[5]?.v || "").toString();
 
-      // Super admin sees all
+      // Company isolation
       if(role !== "super" && companyRow !== company) return;
 
       html += `
@@ -127,7 +117,8 @@ fetch(API_URL)
           <b>${username}</b><br>
           Role: ${roleRow}<br>
           Company: ${companyRow}<br>
-          <span class="tag">${modules}</span>
+          Modules: ${modules}<br>
+          Status: ${status}
         </div>
       `;
     });
