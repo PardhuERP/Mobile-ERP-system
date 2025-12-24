@@ -4,6 +4,7 @@
    A: product_id
    B: qty_available
    C: last_updated
+   D: ok
 ========================= */
 
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
