@@ -2,7 +2,7 @@ const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
 const SHEET_NAME = "Users";
 
 const API_URL =
-`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`;
 
 async function login(){
   const u = document.getElementById("user").value.trim().toLowerCase();
@@ -24,12 +24,8 @@ async function login(){
       const username = (r.c[0]?.v || "").toString().trim().toLowerCase();
       const pin = (r.c[1]?.v || "").toString().trim();
       const role = (r.c[2]?.v || "").toString().trim().toLowerCase();
-      const company = (r.c[3]?.v || "").toString().trim(); // 🔥 TRIM FIX
-      const modules = (r.c[4]?.v || "")
-                        .toString()
-                        .split(",")
-                        .map(m => m.trim().toUpperCase()) // 🔥 NORMALIZE
-                        .join(",");
+      const company = (r.c[3]?.v || "").toString().trim();
+      const modules = (r.c[4]?.v || "").toString().trim().toLowerCase();
 
       if(username === u && pin === p){
         localStorage.setItem("user", username);
