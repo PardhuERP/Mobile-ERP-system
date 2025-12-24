@@ -78,11 +78,25 @@ body{
 
   <!-- DASHBOARD CARDS -->
   <div class="grid">
-   <div class="card" data-module="products"><h3>Products</h3></div>
-<div class="card" data-module="orders"><h3>Orders</h3></div>
-<div class="card" data-module="stock"><h3>Stock</h3></div>
-<div class="card" data-module="reports"><h3>Reports</h3></div>
-<div class="card" data-module="settings"><h3>Settings</h3></div> 
+    <div class="card" data-module="products" onclick="window.location.href='products.html'">
+      <h3>Products</h3>
+    </div>
+
+    <div class="card" data-module="stock" onclick="alert('Stock – next step')">
+      <h3>Stock</h3>
+    </div>
+
+    <div class="card" data-module="orders" onclick="window.location.href='orders.html'">
+      <h3>Orders</h3>
+    </div>
+
+    <div class="card" data-module="reports" onclick="alert('Reports – next step')">
+      <h3>Reports</h3>
+    </div>
+
+    <div class="card" data-module="settings" onclick="alert('Settings – admin only')">
+      <h3>Settings</h3>
+    </div>
   </div>
 
   <!-- LIVE PRODUCTS -->
@@ -94,10 +108,18 @@ body{
 
 <script>
 /* =========================
-   ROLE CHECK (FIRST)
+   RBAC CHECK
 ========================= */
 const role = localStorage.getItem("role");
 const modules = (localStorage.getItem("modules") || "").toLowerCase();
+
+if(!role){
+  window.location.href = "index.html";
+}
+
+document.getElementById("roleText").innerText =
+  role === "super" ? "Super Admin" :
+  role === "admin" ? "Company Admin" : "Staff";
 
 if(modules !== "all"){
   const allowed = modules.split(",").map(m => m.trim());
@@ -108,37 +130,19 @@ if(modules !== "all"){
   });
 }
 
-if(!role){
-  window.location.href="index.html";
-}
-
-document.getElementById("roleText").innerText =
-  role === "super" ? "Super Admin" :
-  role === "admin" ? "Company Admin" : "Staff";
-
-if(modules !== "ALL"){
-  const allowed = modules.split(",").map(m=>m.trim()toUpperCase());
-  document.querySelectorAll(".card").forEach(c=>{
-    const name = c.innerText.trim().toUplerCase();
-    if(!allowed.includes(name)){
-      c.style.display="none";
-    }
-  });
-}
-
 function logout(){
   localStorage.clear();
-  window.location.href="index.html";
+  window.location.href = "index.html";
 }
 
 /* =========================
-   GOOGLE SHEET CONFIG
+   GOOGLE SHEET – PRODUCTS
 ========================= */
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
-const SHEET_NAME = "Products";
+const SHEET_NAME = "Products"; // MUST match tab name exactly
 
 const API_URL =
-  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`;
 
 /* =========================
    FETCH & DISPLAY PRODUCTS
@@ -156,31 +160,33 @@ fetch(API_URL)
     rows.forEach(r => {
       if(!r.c) return;
 
-      const active = r.c[5]?.v;
-      if(active === "YES"){
-        const name = r.c[1]?.v || "Item";
-        const price = r.c[2]?.v || 0;
-        const stock = r.c[3]?.v || 0;
-        const category = r.c[4]?.v || "-";
+      // Columns:
+      // A id | B name | C price | D stock | E category | F image | G active
+      const active = r.c[6]?.v;
+      if(!active || active.toString().toLowerCase() !== "yes") return;
 
-        html += `
-          <div class="product">
-            <b>${name}</b><br>
-            Price: ₹${price}<br>
-            Stock: ${stock}<br>
-            Category: ${category}
-          </div>
-        `;
-      }
+      const name = r.c[1]?.v || "Item";
+      const price = r.c[2]?.v || 0;
+      const stock = r.c[3]?.v || 0;
+      const category = r.c[4]?.v || "-";
+
+      html += `
+        <div class="product">
+          <b>${name}</b><br>
+          Price: ₹${price}<br>
+          Stock: ${stock}<br>
+          Category: ${category}
+        </div>
+      `;
     });
 
     document.getElementById("productList").innerHTML =
       html || "No active products";
 
   })
-  .catch(() => {
-    document.getElementById("productList")
-      .innerText = "Error loading data";
+  .catch(e => {
+    console.error(e);
+    document.getElementById("productList").innerText = "Error loading data";
   });
 </script>
 
