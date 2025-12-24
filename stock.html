@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pardhu ERP – Products</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<script>
+/* ===== PAGE RBAC: STOCK ===== */
+const role = localStorage.getItem("role");
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
+
+if (!role) {
+  window.location.replace("index.html");
+}
+
+if (modules !== "all" && !modules.split(",").includes("stock")) {
+  window.location.replace("dashboard.html");
+}
+</script>
+
+<h2>Stock</h2>
+<div id="stockList">Loading...</div>
+
+<script src="stock.js"></script>
+</body>
+</html>
