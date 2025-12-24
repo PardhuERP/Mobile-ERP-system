@@ -18,16 +18,18 @@ async function login(){
       text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
     );
 
-    const rows = json.table.rows;
-
-    for(const r of rows){
+    for(const r of json.table.rows){
       if(!r.c) continue;
 
       const username = (r.c[0]?.v || "").toString().trim().toLowerCase();
       const pin = (r.c[1]?.v || "").toString().trim();
-      const role = r.c[2]?.v || "";
-      const company = r.c[3]?.v || "";
-      const modules = r.c[4]?.v || "";
+      const role = (r.c[2]?.v || "").toString().trim().toLowerCase();
+      const company = (r.c[3]?.v || "").toString().trim(); // 🔥 TRIM FIX
+      const modules = (r.c[4]?.v || "")
+                        .toString()
+                        .split(",")
+                        .map(m => m.trim().toUpperCase()) // 🔥 NORMALIZE
+                        .join(",");
 
       if(username === u && pin === p){
         localStorage.setItem("user", username);
