@@ -55,6 +55,19 @@ button{
 </head>
 
 <body>
+<script>
+/* ===== PAGE RBAC: PRODUCTS ===== */
+const role = localStorage.getItem("role");
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
+
+if (!role) {
+  window.location.replace("index.html");
+}
+
+if (modules !== "all" && !modules.split(",").includes("products")) {
+  window.location.replace("dashboard.html");
+}
+</script>
 
 <div class="header">Products</div>
 
