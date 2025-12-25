@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pardhu ERP – Settings</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f4f6f8;
+}
+.header{
+  background:#25D366;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+}
+.container{
+  padding:15px;
+}
+.setting{
+  background:#fff;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  font-size:14px;
+}
+.key{
+  font-weight:bold;
+}
+.back{
+  color:#25D366;
+  cursor:pointer;
+  margin-bottom:10px;
+  display:inline-block;
+}
+</style>
+</head>
+
+<body>
+
+<script>
+/* ===== PAGE RBAC: SETTINGS ===== */
+const role = localStorage.getItem("role");
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
+
+if (!role) {
+  window.location.replace("index.html");
+}
+
+if (role !== "super" && role !== "admin") {
+  window.location.replace("dashboard.html");
+}
+
+if (modules !== "all" && !modules.split(",").includes("settings")) {
+  window.location.replace("dashboard.html");
+}
+</script>
+
+<div class="header">Settings</div>
+
+<div class="container">
+  <div class="back" onclick="history.back()">← Back</div>
+  <div id="settingsList">Loading...</div>
+</div>
+
+<script src="settings.js"></script>
+</body>
+</html>
