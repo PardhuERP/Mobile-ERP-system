@@ -8,6 +8,9 @@ const SHEET_NAME = "settings";
 const company = localStorage.getItem("company") || "master";
 const role = localStorage.getItem("role");
 
+// later…
+if (role !== "super" && rowCompany !== company) return;
+
 const API_URL =
   `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`;
 
