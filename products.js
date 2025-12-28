@@ -1,30 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Pardhu ERP – Products</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
+/* ===== GOOGLE SHEET CONFIG ===== */
+const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
+const SHEET_NAME = "products";
 
-<body>
+/* ===== FETCH PRODUCTS ===== */
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`)
+  .then(res => res.text())
+  .then(text => {
+    const json = JSON.parse(
+      text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
+    );
 
-<script>
-/* ===== PAGE RBAC: PRODUCTS ===== */
-const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules") || "").toLowerCase();
+    let html = "";
 
-if (!role) {
-  window.location.replace("index.html");
-}
+    json.table.rows.forEach(r => {
+      if(!r.c) return;
 
-if (modules !== "all" && !modules.split(",").includes("products")) {
-  window.location.replace("dashboard.html");
-}
-</script>
+      // A id | B name | C price | D stock | E category | F active
+      if((r.c[5]?.v || "").toLowerCase() !== "yes") return;
 
-<h2>Products</h2>
-<div id="productList">Loading...</div>
+      html += `
+        <div class="product">
+          <b>${r.c[1]?.v}</b><br>
+          Price: ₹${r.c[2]?.v}<br>
+          Stock: ${r.c[3]?.v}<br>
+          <span class="badge">${r.c[4]?.v}</span>
+        </div>
+      `;
+    });
 
-<script src="products.js"></script>
-</body>
-</html>
+    document.getElementById("productList").innerHTML =
+      html || "No active products";
+
+  })
+  .catch(() => {
+    document.getElementById("productList").innerText =
+      "Error loading products";
+  });
