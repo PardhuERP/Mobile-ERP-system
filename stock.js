@@ -1,55 +1,62 @@
-/* ===== AUTH GUARD ===== */
-const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules") || "").toLowerCase();
-
-if(!role){
-  window.location.href = "index.html";
-}
-
-if(modules !== "all" && !modules.split(",").includes("stock")){
-  alert("Access denied");
-  window.location.href = "dashboard.html";
-}
-
-/* ===== GOOGLE SHEET CONFIG ===== */
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
-const SHEET_NAME = "stock";
 
-const API_URL =
-`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`;
+const PRODUCTS_SHEET = "products";
+const STOCK_SHEET = "stock";
 
-/* ===== LOAD STOCK ===== */
-fetch(API_URL)
-  .then(res => res.text())
-  .then(text => {
-    const json = JSON.parse(
-      text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
-    );
+/* Fetch both sheets */
+Promise.all([
+  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${PRODUCTS_SHEET}`)
+    .then(r => r.text()),
+  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${STOCK_SHEET}`)
+    .then(r => r.text())
+])
+.then(([pText, sText]) => {
 
-    let html = "";
+  const productsJSON = JSON.parse(
+    pText.substring(pText.indexOf('{'), pText.lastIndexOf('}') + 1)
+  );
+  const stockJSON = JSON.parse(
+    sText.substring(sText.indexOf('{'), sText.lastIndexOf('}') + 1)
+  );
 
-    json.table.rows.forEach((r, index) => {
-      if(index === 0 || !r.c) return; // skip header
-
-      const productId = r.c[0]?.v;
-      const qty = r.c[1]?.v;
-      const updated = r.c[2]?.v;
-
-      html += `
-        <div style="background:#fff;padding:12px;margin-bottom:10px;border-radius:10px">
-          <b>Product ID:</b> ${productId}<br>
-          <b>Available Qty:</b> ${qty}<br>
-          <b>Last Updated:</b> ${updated}
-        </div>
-      `;
-    });
-
-    document.getElementById("stockList").innerHTML =
-      html || "No stock data";
-
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById("stockList").innerText =
-      "Error loading stock";
+  /* Build product map */
+  const productMap = {};
+  productsJSON.table.rows.forEach(r => {
+    if(!r.c) return;
+    productMap[r.c[0].v] = {
+      name: r.c[1].v,
+      category: r.c[4].v,
+      active: (r.c[5].v || "").toLowerCase()
+    };
   });
+
+  let html = "";
+
+  stockJSON.table.rows.forEach(r => {
+    if(!r.c) return;
+
+    const productId = r.c[0]?.v;
+    const qty = r.c[1]?.v;
+    const updated = r.c[2]?.v;
+
+    const product = productMap[productId];
+    if(!product || product.active !== "yes") return;
+
+    html += `
+      <div class="stock">
+        <b>${product.name}</b><br>
+        Category: ${product.category}<br>
+        Available Qty: ${qty}<br>
+        <span class="small">Updated: ${updated}</span>
+      </div>
+    `;
+  });
+
+  document.getElementById("stockList").innerHTML =
+    html || "No stock data available";
+
+})
+.catch(() => {
+  document.getElementById("stockList").innerText =
+    "Error loading stock data";
+});
