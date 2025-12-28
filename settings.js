@@ -1,20 +1,9 @@
-/* =========================
-   SETTINGS – SMART ERP
-========================= */
-
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
 const SHEET_NAME = "settings";
 
-const company = localStorage.getItem("company") || "master";
-const role = localStorage.getItem("role");
+const company = (localStorage.getItem("company") || "").toLowerCase();
 
-// later…
-if (role !== "super" && rowCompany !== company) return;
-
-const API_URL =
-  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`;
-
-fetch(API_URL)
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`)
   .then(res => res.text())
   .then(text => {
     const json = JSON.parse(
@@ -24,21 +13,27 @@ fetch(API_URL)
     let html = "";
 
     json.table.rows.forEach(r => {
-      if (!r.c) return;
+      if(!r.c) return;
 
-      const key = r.c[0]?.v || "";
-      const value = r.c[1]?.v || "";
-      const rowCompany = r.c[2]?.v || "";
-      const updatedBy = r.c[3]?.v || "";
+      const key = (r.c[0]?.v || "").toLowerCase();
+      const value = (r.c[1]?.v || "").toLowerCase();
+      const rowCompany = (r.c[2]?.v || "").toLowerCase();
 
-      // Super sees all, admin sees own
-      if (role !== "super" && rowCompany !== company) return;
+      if(rowCompany !== company) return;
+
+      // Save settings to localStorage (GLOBAL EFFECT)
+      localStorage.setItem(key, value);
+
+      // Apply theme instantly
+      if(key === "theme_color"){
+        document.documentElement.style.setProperty("--theme", value);
+        document.querySelector(".header").style.background = value;
+      }
 
       html += `
         <div class="setting">
-          <span class="key">${key}</span><br>
-          Value: ${value}<br>
-          <small>Company: ${rowCompany} | Updated by: ${updatedBy}</small>
+          <div class="key">${key}</div>
+          <div class="value">${value}</div>
         </div>
       `;
     });
@@ -47,8 +42,7 @@ fetch(API_URL)
       html || "No settings found";
 
   })
-  .catch(err => {
-    console.error(err);
+  .catch(() => {
     document.getElementById("settingsList").innerText =
       "Error loading settings";
   });
