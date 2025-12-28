@@ -167,7 +167,7 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
   let html="";
   json.table.rows.forEach(r=>{
     if(!r.c) return;
-    if((r.c[6]?.v || "").toString().toLowerCase() !== "yes") return;
+    if((r.c[5]?.v || "").toString().toLowerCase() !== "yes") return;
 
     html += `
       <div class="product">
