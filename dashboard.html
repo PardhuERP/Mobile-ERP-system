@@ -12,7 +12,7 @@ body{
   background:#f4f6f8;
 }
 .header{
-  background:#25D366;
+  background:#25d366;
   color:#fff;
   padding:15px;
   text-align:center;
@@ -86,7 +86,7 @@ if(!user || !role){
 
 <div class="container">
 
-  <!-- DASHBOARD CARDS -->
+  <!-- ===== DASHBOARD MODULES ===== -->
   <div class="grid">
 
     <div class="card" data-module="products"
@@ -95,23 +95,24 @@ if(!user || !role){
     </div>
 
     <div class="card" data-module="stock"
-     onclick="window.location.href='stock.html'">
-  <h3>Stock</h3>
-</div>
+         onclick="window.location.href='stock.html'">
+      <h3>Stock</h3>
+    </div>
 
     <div class="card" data-module="orders"
          onclick="window.location.href='orders.html'">
       <h3>Orders</h3>
     </div>
 
-    <div class="card" data-module="reports">
+    <div class="card" data-module="reports"
+         onclick="window.location.href='reports.html'">
       <h3>Reports</h3>
     </div>
 
     <div class="card" data-module="settings"
-     onclick="window.location.href='settings.html'">
-  <h3>Settings</h3>
-</div>
+         onclick="window.location.href='settings.html'">
+      <h3>Settings</h3>
+    </div>
 
     <div class="card" data-module="employees"
          onclick="window.location.href='employees.html'">
@@ -120,9 +121,11 @@ if(!user || !role){
 
   </div>
 
-  <!-- LIVE PRODUCTS -->
-  <div class="section-title">Products (Live)</div>
-  <div id="productList">Loading...</div>
+  <!-- ===== LIVE PRODUCTS (ADMIN + SUPER ONLY) ===== -->
+  <div id="liveProductsBlock" style="display:none">
+    <div class="section-title">Products (Live)</div>
+    <div id="productList">Loading...</div>
+  </div>
 
   <div class="logout" onclick="logout()">Logout</div>
 </div>
@@ -133,13 +136,14 @@ if(!user || !role){
 const modulesRaw = (localStorage.getItem("modules") || "").toLowerCase();
 const allowed =
   modulesRaw === "all"
-  ? ["all"]
-  : modulesRaw.split(",").map(m => m.trim());
+    ? ["all"]
+    : modulesRaw.split(",").map(m => m.trim());
 
 document.getElementById("roleText").innerText =
   role === "super" ? "Super Admin" :
   role === "admin" ? "Company Admin" : "Staff";
 
+/* Hide modules not allowed */
 document.querySelectorAll(".card").forEach(card => {
   const mod = card.dataset.module;
   if(allowed.includes("all")) return;
@@ -148,39 +152,51 @@ document.querySelectorAll(".card").forEach(card => {
   }
 });
 
+/* Show live products only for super/admin */
+if(role === "super" || role === "admin"){
+  document.getElementById("liveProductsBlock").style.display = "block";
+}
+
+/* Logout */
 function logout(){
   localStorage.clear();
   window.location.href = "index.html";
 }
 
-/* ===== LIVE PRODUCTS ===== */
+/* ===== LIVE PRODUCTS FETCH ===== */
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
-const SHEET_NAME = "Products";
+const SHEET_NAME = "products";
 
 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`)
-.then(res => res.text())
-.then(text => {
-  const json = JSON.parse(
-    text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
-  );
+  .then(res => res.text())
+  .then(text => {
+    const json = JSON.parse(
+      text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
+    );
 
-  let html="";
-  json.table.rows.forEach(r=>{
-    if(!r.c) return;
-    if((r.c[5]?.v || "").toString().toLowerCase() !== "yes") return;
+    let html = "";
+    json.table.rows.forEach(r => {
+      if(!r.c) return;
 
-    html += `
-      <div class="product">
-        <b>${r.c[1]?.v}</b><br>
-        Price: ₹${r.c[2]?.v}<br>
-        Stock: ${r.c[3]?.v}
-      </div>
-    `;
+      // A id | B name | C price | D stock | E category | F active
+      if((r.c[5]?.v || "").toLowerCase() !== "yes") return;
+
+      html += `
+        <div class="product">
+          <b>${r.c[1]?.v}</b><br>
+          Price: ₹${r.c[2]?.v}<br>
+          Stock: ${r.c[3]?.v}
+        </div>
+      `;
+    });
+
+    document.getElementById("productList").innerHTML =
+      html || "No active products";
+  })
+  .catch(() => {
+    document.getElementById("productList").innerText =
+      "Error loading products";
   });
-
-  document.getElementById("productList").innerHTML =
-    html || "No active products";
-});
 </script>
 
 </body>
