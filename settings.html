@@ -29,33 +29,28 @@ body{
 }
 .setting{
   background:#fff;
-  padding:14px;
+  padding:12px;
   margin-bottom:10px;
-  border-radius:10px;
+  border-radius:8px;
   box-shadow:0 2px 6px rgba(0,0,0,0.1);
-  font-size:14px;
 }
-.key{
-  font-weight:bold;
-}
-.value{
-  color:#555;
-}
+.key{font-weight:bold}
+.value{opacity:.8}
 </style>
 </head>
 
 <body>
 
-<!-- ===== AUTH + RBAC ===== -->
 <script>
+/* ===== AUTH + RBAC ===== */
 const role = localStorage.getItem("role");
-const company = localStorage.getItem("company");
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
 
 if(!role){
   window.location.href = "index.html";
 }
 
-if(role !== "admin" && role !== "super"){
+if(role !== "super" && !modules.includes("settings")){
   alert("Access denied");
   window.location.href = "dashboard.html";
 }
