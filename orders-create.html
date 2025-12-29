@@ -45,43 +45,54 @@ if(modules!=="all" && !modules.split(",").includes("orders")){
 </div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
-let lock=false;
+const API_URL = "https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
+let submitting = false;
 
 function createOrder(){
-  if(lock) return;
-  lock=true;
+  if(submitting) return;
+  submitting = true;
 
-  const btn=document.getElementById("btn");
-  btn.disabled=true;
-  btn.innerText="Saving...";
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerText = "Saving...";
 
-  const data=new URLSearchParams();
-  data.append("customer",customer.value);
-  data.append("product",product.value);
-  data.append("product_id",product_id.value);
-  data.append("qty",qty.value);
-  data.append("total",total.value);
-  data.append("paid",paid.value);
-  data.append("balance",total.value-paid.value);
-  data.append("company",localStorage.getItem("company"));
-  data.append("created_by",localStorage.getItem("user"));
+  const qtyVal = Number(qty.value || 0);
+  const totalVal = Number(total.value || 0);
+  const paidVal = Number(paid.value || 0);
 
-  fetch(API_URL,{method:"POST",body:data})
-  .then(r=>r.json())
-  .then(res=>{
+  const formData = new URLSearchParams();
+  formData.append("customer", customer.value.trim());
+  formData.append("product", product.value.trim());
+  formData.append("product_id", product_id.value.trim());
+  formData.append("qty", qtyVal);
+  formData.append("total", totalVal);
+  formData.append("paid", paidVal);
+  formData.append("balance", totalVal - paidVal);
+  formData.append("company", localStorage.getItem("company"));
+  formData.append("payment_mode", payment_mode.value);
+  formData.append("created_by", localStorage.getItem("user"));
+
+  fetch(API_URL, {
+    method: "POST",
+    body: formData
+  })
+  .then(r => r.json())
+  .then(res => {
     if(res.success){
-      alert("Order created: "+res.order_id);
-      location.replace("orders.html");
-    }else{
-      alert(res.error);
+      alert("✅ Order created: " + res.order_id);
+      location.href = "orders.html";
+    } else {
+      alert("❌ " + res.error);
     }
   })
-  .catch(()=>alert("Network error"))
+  .catch(err => {
+    console.error(err);
+    alert("❌ Network / API error");
+  })
   .finally(()=>{
-    lock=false;
-    btn.disabled=false;
-    btn.innerText="Create Order";
+    submitting = false;
+    btn.disabled = false;
+    btn.innerText = "Create Order";
   });
 }
 </script>
