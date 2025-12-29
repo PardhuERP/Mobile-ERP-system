@@ -1,31 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Create Order</title>
+<title>Create Order – Pardhu ERP</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:Arial;background:#f4f6f8}
-.header{background:#25d366;color:#fff;padding:15px;text-align:center}
-.container{padding:15px}
-input,select,button{
-  width:100%;padding:12px;margin-bottom:12px;
-  border-radius:8px;border:1px solid #ccc;font-size:14px
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f4f6f8;
 }
-button{background:#25d366;color:#fff;border:none;font-weight:bold}
-.back{color:#25d366;margin-bottom:10px;display:inline-block;cursor:pointer}
+.header{
+  background:#25d366;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+}
+.container{
+  padding:15px;
+}
+.back{
+  color:#25d366;
+  cursor:pointer;
+  margin-bottom:10px;
+  display:inline-block;
+  font-weight:bold;
+}
+.form{
+  background:#fff;
+  padding:15px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+label{
+  font-size:13px;
+  color:#555;
+}
+input, select{
+  width:100%;
+  padding:12px;
+  margin:6px 0 12px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  font-size:14px;
+}
+button{
+  width:100%;
+  padding:14px;
+  background:#25d366;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.small{
+  font-size:12px;
+  color:#777;
+}
 </style>
 </head>
 
 <body>
 
+<!-- ===== AUTH + RBAC ===== -->
 <script>
-/* ===== RBAC ===== */
 const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules")||"").toLowerCase();
-if(!role || (modules!=="all" && !modules.includes("orders"))){
-  location.href="dashboard.html";
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
+
+if(!role){
+  window.location.href = "index.html";
+}
+
+if(modules !== "all" && !modules.split(",").includes("orders")){
+  alert("Access denied");
+  window.location.href = "dashboard.html";
 }
 </script>
 
@@ -34,23 +86,60 @@ if(!role || (modules!=="all" && !modules.includes("orders"))){
 <div class="container">
   <div class="back" onclick="history.back()">← Back</div>
 
-  <input id="customer" placeholder="Customer name">
-  
-  <select id="product"></select>
+  <div class="form">
+    
+    <label>Customer Name</label>
+    <input type="text" id="customer" placeholder="Customer name">
 
-  <input id="qty" type="number" placeholder="Quantity">
+    <label>Product Name</label>
+    <input type="text" id="product" placeholder="Product">
 
-  <input id="paid" type="number" placeholder="Paid amount">
+    <label>Product ID</label>
+    <input type="number" id="product_id" placeholder="Product ID">
 
-  <select id="payment_mode">
-    <option value="cash">Cash</option>
-    <option value="upi">UPI</option>
-    <option value="card">Card</option>
-  </select>
+    <label>Quantity</label>
+    <input type="number" id="qty" placeholder="Quantity">
 
-  <button onclick="saveOrder()">Save Order</button>
+    <label>Total Amount</label>
+    <input type="number" id="total" placeholder="Total amount">
+
+    <label>Paid Amount</label>
+    <input type="number" id="paid" placeholder="Paid amount">
+
+    <label>Payment Mode</label>
+    <select id="payment_mode">
+      <option value="cash">Cash</option>
+      <option value="upi">UPI</option>
+      <option value="card">Card</option>
+    </select>
+
+    <label>Order Type</label>
+    <select id="order_type">
+      <option value="offline">Offline</option>
+      <option value="online">Online</option>
+    </select>
+
+    <label>Status</label>
+    <select id="status">
+      <option value="pending">Pending</option>
+      <option value="completed">Completed</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+
+    <button onclick="submitOrder()">Save Order</button>
+
+    <p class="small">
+      Order will be saved to Google Sheet (next step)
+    </p>
+
+  </div>
 </div>
 
-<script src="orders-create.js"></script>
+<script>
+function submitOrder(){
+  alert("UI ready ✔\nNext step: Save to Google Sheet");
+}
+</script>
+
 </body>
 </html>
