@@ -1,121 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Create Order</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#f4f6f8;
-}
-.header{
-  background:#25d366;
-  color:#fff;
-  padding:15px;
-  text-align:center;
-  font-size:18px;
-}
-.container{
-  padding:15px;
-}
-input, select, button{
-  width:100%;
-  padding:12px;
-  margin-bottom:10px;
-  border-radius:6px;
-  border:1px solid #ccc;
-  font-size:14px;
-}
-button{
-  background:#25d366;
-  color:#fff;
-  border:none;
-  cursor:pointer;
-}
-button:disabled{
-  opacity:0.6;
-}
-.back{
-  color:#25d366;
-  margin-bottom:10px;
-  display:inline-block;
-  cursor:pointer;
-}
-</style>
-</head>
-
-<body>
-
-<!-- ===== AUTH + RBAC ===== -->
 <script>
-const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules") || "").toLowerCase();
-
-if(!role){
-  window.location.href="index.html";
-}
-
-if(modules !== "all" && !modules.split(",").includes("orders")){
-  alert("Access denied");
-  window.location.href="dashboard.html";
-}
-</script>
-
-<div class="header">Create Order</div>
-
-<div class="container">
-  <div class="back" onclick="goBack()">← Back</div>
-
-  <input id="customer" placeholder="Customer Name">
-  <input id="product" placeholder="Product Name">
-  <input id="product_id" placeholder="Product ID">
-  <input id="qty" type="number" placeholder="Quantity">
-  <input id="total" type="number" placeholder="Total Amount">
-  <input id="paid" type="number" placeholder="Paid Amount">
-
-  <select id="payment_mode">
-    <option value="cash">Cash</option>
-    <option value="upi">UPI</option>
-    <option value="card">Card</option>
-  </select>
-
-  <button id="submitBtn" type="button" onclick="createOrder()">
-    Create Order
-  </button>
-</div>
-
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
-
-function goBack(){
-  window.location.href = "dashboard.html";
-}
+const API_URL = "PASTE_NEW_WEBAPP_URL_HERE";
 
 function createOrder(){
-
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.innerText = "Saving...";
-
-  // validation
-  if(!customer.value || !product.value || !qty.value){
-    alert("Fill required fields");
-    btn.disabled = false;
-    btn.innerText = "Create Order";
-    return;
-  }
 
   const formData = new URLSearchParams();
   formData.append("customer", customer.value);
   formData.append("product", product.value);
   formData.append("product_id", product_id.value);
-  formData.append("qty", Number(qty.value));
-  formData.append("total", Number(total.value || 0));
-  formData.append("paid", Number(paid.value || 0));
-  formData.append("balance", Number(total.value || 0) - Number(paid.value || 0));
+  formData.append("qty", qty.value);
+  formData.append("total", total.value);
+  formData.append("paid", paid.value);
+  formData.append("balance", total.value - paid.value);
   formData.append("company", localStorage.getItem("company"));
   formData.append("payment_mode", payment_mode.value);
   formData.append("created_by", localStorage.getItem("user"));
@@ -127,22 +22,15 @@ function createOrder(){
   .then(res => res.json())
   .then(result => {
     if(result.success){
-      alert("Order saved. ID: " + result.order_id);
-      window.location.href = "orders.html";
-    }else{
-      alert("Server error");
-      btn.disabled = false;
-      btn.innerText = "Create Order";
+      alert("Order Created ✅\nOrder ID: " + result.order_id);
+      location.href = "orders.html";
+    } else {
+      alert("Server error: " + result.error);
     }
   })
   .catch(err => {
     console.error(err);
     alert("Network / API error");
-    btn.disabled = false;
-    btn.innerText = "Create Order";
   });
 }
 </script>
-
-</body>
-</html>
