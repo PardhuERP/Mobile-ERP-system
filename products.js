@@ -13,21 +13,22 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
     let html = "";
 
     json.table.rows.forEach(r => {
-      if(!r.c) return;
+  if(!r.c) return;
 
-      // A id | B name | C price | D stock | E category | F active
-      if((r.c[5]?.v || "").toLowerCase() !== "yes") return;
+  const active = (r.c[5]?.v || "").toString().toLowerCase();
+  console.log("ACTIVE:", active, "NAME:", r.c[1]?.v);
 
-      html += `
-        <div class="product">
-          <b>${r.c[1]?.v}</b><br>
-          Price: ₹${r.c[2]?.v}<br>
-          Stock: ${r.c[3]?.v}<br>
-          <span class="badge">${r.c[4]?.v}
-          </span>
-        </div>
-      `;
-    });
+  if(active !== "yes") return;
+
+  html += `
+    <div class="product">
+      <b>${r.c[1]?.v}</b><br>
+      Price: ₹${r.c[2]?.v}<br>
+      Stock: ${r.c[3]?.v}<br>
+      <span class="badge">${r.c[4]?.v}</span>
+    </div>
+  `;
+});
 
     document.getElementById("productList").innerHTML =
       html || "No active products";
