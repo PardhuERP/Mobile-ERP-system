@@ -183,9 +183,9 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
 
       html += `
         <div class="product">
-          <b>${r.c[0]?.v}</b><br>
-          Price: ₹${r.c[1]?.v}<br>
-          Stock: ${r.c[2]?.v}
+          <b>${r.c[1]?.v}</b><br>
+          Price: ₹${r.c[2]?.v}<br>
+          Stock: ${r.c[3]?.v}
         </div>
       `;
     });
