@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Orders</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <style>
 body{margin:0;font-family:Arial;background:#f4f6f8}
 .header{background:#25d366;color:#fff;padding:15px;text-align:center}
@@ -14,31 +13,22 @@ body{margin:0;font-family:Arial;background:#f4f6f8}
 .pending{background:#ff9800}
 .completed{background:#4caf50}
 .cancelled{background:#f44336}
-button{
-  padding:10px;
-  width:100%;
-  margin-bottom:10px;
-  border:none;
-  border-radius:6px;
-  background:#2196f3;
-  color:#fff;
-  font-size:14px;
-}
+button{border:none;padding:8px;border-radius:6px;color:#fff;cursor:pointer}
 </style>
 </head>
 
 <body>
 
-<!-- ===== AUTH + RBAC (ONLY HERE) ===== -->
 <script>
+/* ===== AUTH + RBAC ===== */
 const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules")||"").toLowerCase();
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
 
 if(!role){
   location.replace("index.html");
 }
 
-if(modules !== "all" && !modules.split(",").includes("orders")){
+if(modules !== "all" && !modules.includes("orders")){
   alert("Access denied");
   location.replace("dashboard.html");
 }
@@ -48,10 +38,13 @@ if(modules !== "all" && !modules.split(",").includes("orders")){
 
 <div class="container">
 
-  <!-- Create order allowed for staff + admin + super -->
-  <button onclick="location.href='orders-create.html'">
+  <!-- Create Order (ALL roles who have orders) -->
+  <button style="background:#2196f3;width:100%"
+    onclick="location.href='orders-create.html'">
     ➕ Create Order
   </button>
+
+  <br><br>
 
   <div id="orderList">Loading...</div>
 </div>
