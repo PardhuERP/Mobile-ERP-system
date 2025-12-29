@@ -36,22 +36,36 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
       String(r.c[12]?.v || "pending").toLowerCase();
 
     html += `
-      <div class="order">
-        <b>Order #${orderId}</b><br>
-        <small>${date}</small><br><br>
+  <div class="order">
+    <div class="order-header">
+      <div class="order-id">Order #${orderId}</div>
+      <div class="order-date">${date}</div>
+    </div>
 
-        Customer: ${customer}<br>
-        Product: ${product}<br>
-        Qty: ${qty}<br>
-        Total: ₹${total}<br>
-        Paid: ₹${paid}<br>
-        Balance: ₹${balance}<br>
+    <div class="order-row">
+      <span>Customer</span><span>${customer}</span>
+    </div>
+    <div class="order-row">
+      <span>Product</span><span>${product}</span>
+    </div>
+    <div class="order-row">
+      <span>Qty</span><span>${qty}</span>
+    </div>
+    <div class="order-row">
+      <span>Total</span><span>₹${total}</span>
+    </div>
+    <div class="order-row">
+      <span>Paid</span><span>₹${paid}</span>
+    </div>
+    <div class="order-row">
+      <span>Balance</span><span>₹${balance}</span>
+    </div>
 
-        <span class="badge ${status}">
-          ${status.toUpperCase()}
-        </span>
-      </div>
-    `;
+    <span class="badge ${status}">
+      ${status.toUpperCase()}
+    </span>
+  </div>
+`;
   });
 
   document.getElementById("orderList").innerHTML =
