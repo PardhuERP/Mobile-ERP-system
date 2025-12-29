@@ -62,7 +62,13 @@ if(modules !== "all" && !modules.split(",").includes("stock")){
 <div class="header">Stock</div>
 
 <div class="container">
-  <div class="back" onclick="history.back()">← Back</div>
+  <div class="back" onclick="goBack()">← Back</div>
+
+<script>
+function goBack(){
+  window.location.href = "dashboard.html";
+}
+</script>
   <div id="stockList">Loading...</div>
 </div>
 
