@@ -1,3 +1,14 @@
+function formatDate(v){
+  if(!v) return "";
+  if(typeof v === "string") return v;
+  if(v.getFullYear){
+    const y = v.getFullYear();
+    const m = String(v.getMonth()+1).padStart(2,"0");
+    const d = String(v.getDate()).padStart(2,"0");
+    return `${y}-${m}-${d}`;
+  }
+  return "";
+}
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
 const SHEET_NAME = "orders";
 
