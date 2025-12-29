@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:Arial, sans-serif;
+  margin:20px;
+  background:#fff;
+  color:#000;
+}
+.header{
+  text-align:center;
+  margin-bottom:20px;
+}
+.header h2{
+  margin:0;
+}
+.box{
+  border:1px solid #ccc;
+  padding:15px;
+  border-radius:8px;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+.row span:first-child{
+  color:#555;
+}
+.total{
+  font-size:18px;
+  font-weight:bold;
+}
+.print-btn{
+  margin-top:20px;
+  padding:10px;
+  width:100%;
+  border:none;
+  background:#25d366;
+  color:#fff;
+  font-size:15px;
+  border-radius:6px;
+  cursor:pointer;
+}
+@media print{
+  .print-btn{ display:none; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h2>Pardhu ERP</h2>
+  <div>Invoice</div>
+</div>
+
+<div class="box" id="invoiceBox">
+  Loading invoice...
+</div>
+
+<button class="print-btn" onclick="window.print()">🖨 Print</button>
+
+<script>
+const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
+const SHEET_NAME = "orders";
+
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get("order_id");
+
+if(!orderId){
+  document.getElementById("invoiceBox").innerText =
+    "Invalid invoice";
+  throw new Error("Missing order_id");
+}
+
+function formatDate(v){
+  if(!v) return "";
+  if(typeof v === "string") return v;
+  if(v.getFullYear){
+    return `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2,"0")}-${String(v.getDate()).padStart(2,"0")}`;
+  }
+  return "";
+}
+
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`)
+.then(res=>res.text())
+.then(text=>{
+  const json = JSON.parse(
+    text.substring(text.indexOf("{"), text.lastIndexOf("}")+1)
+  );
+
+  let found = false;
+
+  json.table.rows.forEach(r=>{
+    if(!r.c) return;
+
+    if(String(r.c[0]?.v) !== orderId) return;
+
+    found = true;
+
+    const date     = formatDate(r.c[1]?.v);
+    const customer = r.c[2]?.v || "";
+    const product  = r.c[4]?.v || "";
+    const qty      = r.c[6]?.v || 0;
+    const total    = r.c[7]?.v || 0;
+    const paid     = r.c[8]?.v || 0;
+    const balance  = r.c[9]?.v || 0;
+
+    document.getElementById("invoiceBox").innerHTML = `
+      <div class="row"><span>Order ID</span><span>${orderId}</span></div>
+      <div class="row"><span>Date</span><span>${date}</span></div>
+      <hr>
+      <div class="row"><span>Customer</span><span>${customer}</span></div>
+      <div class="row"><span>Product</span><span>${product}</span></div>
+      <div class="row"><span>Quantity</span><span>${qty}</span></div>
+      <hr>
+      <div class="row total"><span>Total</span><span>₹${total}</span></div>
+      <div class="row"><span>Paid</span><span>₹${paid}</span></div>
+      <div class="row"><span>Balance</span><span>₹${balance}</span></div>
+    `;
+  });
+
+  if(!found){
+    document.getElementById("invoiceBox").innerText =
+      "Invoice not found";
+  }
+})
+.catch(()=>{
+  document.getElementById("invoiceBox").innerText =
+    "Error loading invoice";
+});
+</script>
+
+</body>
+</html>
