@@ -48,33 +48,21 @@ button:disabled{
 </head>
 
 <body>
-  <script>
-const user = localStorage.getItem("user");
-const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules") || "").toLowerCase();
 
-if(!user || !role){
-  alert("Session expired. Please login.");
-  window.location.replace("index.html");
-}
-
-if(modules !== "all" && !modules.split(",").includes("orders")){
-  alert("Access denied");
-  window.location.replace("dashboard.html");
-}
-
-<!-- ===== AUTH + RBAC (SAFE) ===== -->
 <script>
+/* ===== AUTH + RBAC GUARD ===== */
+const user = localStorage.getItem("user");
 const role = localStorage.getItem("role");
 const modulesRaw = localStorage.getItem("modules");
 
-if(!role || !modulesRaw){
+if(!user || !role || !modulesRaw){
+  alert("Session expired. Please login.");
   location.replace("index.html");
 }
 
 const modules = modulesRaw.toLowerCase().split(",");
 
-if(!(modules.includes("orders") || modulesRaw === "all")){
+if(!(modulesRaw === "all" || modules.includes("orders"))){
   alert("Access denied");
   location.replace("dashboard.html");
 }
@@ -102,6 +90,8 @@ if(!(modules.includes("orders") || modulesRaw === "all")){
 </div>
 
 <script>
+/* ===== CREATE ORDER ===== */
+
 const API_URL =
 "https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
 
@@ -120,6 +110,14 @@ function createOrder(){
   const totalVal = Number(total.value || 0);
   const paidVal  = Number(paid.value || 0);
 
+  if(!customer.value || !product.value || qtyVal <= 0){
+    alert("Please fill all required fields");
+    btn.disabled = false;
+    btn.innerText = "Create Order";
+    isSubmitting = false;
+    return;
+  }
+
   const formData = new URLSearchParams();
   formData.append("customer", customer.value.trim());
   formData.append("product", product.value.trim());
@@ -130,7 +128,7 @@ function createOrder(){
   formData.append("balance", totalVal - paidVal);
   formData.append("company", localStorage.getItem("company"));
   formData.append("payment_mode", payment_mode.value);
-  formData.append("created_by", localStorage.getItem("user"));
+  formData.append("created_by", user);
 
   fetch(API_URL,{
     method:"POST",
@@ -142,12 +140,12 @@ function createOrder(){
       alert("✅ Order saved\nOrder ID: " + result.order_id);
       location.replace("orders.html");
     }else{
-      alert("❌ Server error: " + result.error);
+      throw result.error;
     }
   })
   .catch(err=>{
     console.error(err);
-    alert("❌ Network / API error");
+    alert("❌ Server / Network error");
   })
   .finally(()=>{
     isSubmitting = false;
