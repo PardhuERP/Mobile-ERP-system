@@ -1,6 +1,8 @@
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
 const SHEET_NAME = "orders";
 
+const role = localStorage.getItem("role"); // safe here (only once)
+
 function formatDate(v){
   if(!v) return "";
   if(typeof v === "string") return v;
@@ -35,6 +37,22 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
     const statusRaw = r.c[12]?.v;
     const status = statusRaw ? String(statusRaw).toLowerCase() : "pending";
 
+    /* ===== ADMIN / SUPER CONTROLS ===== */
+    let adminButtons = "";
+    if(role === "admin" || role === "super"){
+      adminButtons = `
+        <button style="margin-top:6px;background:#ff9800"
+          onclick="editOrder('${orderId}')">
+          ✏ Edit
+        </button>
+
+        <button style="margin-top:6px;background:#f44336"
+          onclick="cancelOrder('${orderId}')">
+          ❌ Cancel
+        </button>
+      `;
+    }
+
     html += `
       <div class="order">
         <b>Order #${orderId}</b><br>
@@ -55,6 +73,8 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
           onclick="printInvoice('${orderId}')">
           🧾 Print Invoice
         </button>
+
+        ${adminButtons}
       </div>
     `;
   });
@@ -69,9 +89,20 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
     "Error loading orders";
 });
 
+/* ===== ACTIONS ===== */
+
 function printInvoice(orderId){
-  window.open(
-    `invoice.html?order_id=${orderId}`,
-    "_blank"
+  window.open(`invoice.html?order_id=${orderId}`,"_blank");
+}
+
+function editOrder(orderId){
+  location.href = `orders-edit.html?order_id=${orderId}`;
+}
+
+function cancelOrder(orderId){
+  if(!confirm("Cancel this order?")) return;
+
+  alert(
+    "Cancel API step next.\nOrder ID: " + orderId
   );
 }
