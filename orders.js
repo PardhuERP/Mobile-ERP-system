@@ -6,15 +6,16 @@ const SHEET_NAME = "orders";
 const role = localStorage.getItem("role");
 const user = localStorage.getItem("user");
 const company = (localStorage.getItem("company") || "").toLowerCase();
-const modulesRaw = localStorage.getItem("modules") || "";
+const modulesRaw = (localStorage.getItem("modules") || "").toLowerCase();
 
 if (!role || !user) {
   location.replace("index.html");
 }
 
-/* ========= CREATE BUTTON (STAFF + ADMIN + SUPER) ========= */
-if (modulesRaw === "all" || modulesRaw.toLowerCase().includes("orders")) {
-  document.getElementById("orderActions").innerHTML = `
+/* ========= CREATE ORDER BUTTON ========= */
+const actionsBox = document.getElementById("orderActions");
+if (actionsBox && (modulesRaw === "all" || modulesRaw.includes("orders"))) {
+  actionsBox.innerHTML = `
     <button onclick="location.href='orders-create.html'"
       style="width:100%;padding:12px;margin-bottom:12px;
       background:#25d366;color:#fff;border:none;border-radius:6px">
@@ -23,7 +24,7 @@ if (modulesRaw === "all" || modulesRaw.toLowerCase().includes("orders")) {
   `;
 }
 
-/* ========= HELPERS ========= */
+/* ========= DATE FORMAT ========= */
 function formatDate(v){
   if(!v) return "";
   if(typeof v === "string") return v;
@@ -60,11 +61,10 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
     const paid     = Number(r.c[8]?.v || 0);
     const balance  = Number(r.c[9]?.v || 0);
 
-    /* STATUS SAFE */
     const statusRaw = r.c[12]?.v;
     const status = statusRaw ? String(statusRaw).toLowerCase() : "pending";
 
-    /* COMPANY FILTER (SUPER sees all) */
+    // company filter
     if (role !== "super" && rowCompany !== company) return;
 
     html += `
@@ -92,6 +92,5 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
 })
 .catch(err => {
   console.error("ORDERS LOAD ERROR:", err);
-  document.getElementById("orderList").innerText =
-    "Error loading orders";
+  document.getElementById("orderList").innerText = "Error loading orders";
 });
