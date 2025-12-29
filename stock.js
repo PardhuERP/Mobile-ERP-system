@@ -1,58 +1,82 @@
-/* ===============================
-   PARDHU ERP – STOCK MODULE
-   READ ONLY (AUTO CALCULATED)
-================================ */
-
+/* ==========================
+   CONFIG
+========================== */
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
-const SHEET_NAME = "stock";
+const STOCK_SHEET = "stock";
+const ORDERS_SHEET = "orders";
 
-/* ===== FETCH STOCK DATA ===== */
-fetch(
-  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`
-)
-  .then(res => res.text())
-  .then(text => {
-    const json = JSON.parse(
-      text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
-    );
+const company = (localStorage.getItem("company") || "").toLowerCase();
 
-    let html = "";
+/* ==========================
+   FETCH BOTH SHEETS
+========================== */
+Promise.all([
+  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${STOCK_SHEET}`).then(r=>r.text()),
+  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${ORDERS_SHEET}`).then(r=>r.text())
+])
+.then(([stockText, orderText]) => {
 
-    json.table.rows.forEach(r => {
-      if (!r.c) return;
+  const stockJson = JSON.parse(stockText.substring(stockText.indexOf('{'), stockText.lastIndexOf('}')+1));
+  const orderJson = JSON.parse(orderText.substring(orderText.indexOf('{'), orderText.lastIndexOf('}')+1));
 
-      /*
-        stock sheet columns:
-        A = product_id
-        B = opening_stock
-        C = sold_qty
-        D = available_qty
-        E = last_updated
-      */
+  const stockMap = {};
+  const deductedMap = {};
 
-      const productId = r.c[0]?.v ?? "-";
-      const opening   = r.c[1]?.v ?? 0;
-      const sold      = r.c[2]?.v ?? 0;
-      const available = r.c[3]?.v ?? 0;
-      const updated   = r.c[4]?.v ?? "-";
-
-      html += `
-        <div class="product">
-          <b>Product ID:</b> ${productId}<br>
-          Opening Stock: ${opening}<br>
-          Sold Qty: ${sold}<br>
-          <b>Available Qty:</b> ${available}<br>
-          <small>Updated: ${updated}</small>
-        </div>
-      `;
-    });
-
-    document.getElementById("stockList").innerHTML =
-      html || "No stock data available";
-
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById("stockList").innerText =
-      "Error loading stock data";
+  /* ==========================
+     READ STOCK
+  ========================== */
+  stockJson.table.rows.forEach(r=>{
+    if(!r.c) return;
+    const pid = r.c[0]?.v;
+    const qty = Number(r.c[1]?.v || 0);
+    stockMap[pid] = qty;
   });
+
+  /* ==========================
+     PROCESS PAID ORDERS
+  ========================== */
+  orderJson.table.rows.forEach(r=>{
+    if(!r.c) return;
+
+    const orderCompany = (r.c[3]?.v || "").toLowerCase();
+    const productId = r.c[5]?.v;
+    const qty = Number(r.c[6]?.v || 0);
+    const status = (r.c[12]?.v || "").toLowerCase();
+
+    if(orderCompany !== company) return;
+    if(status !== "paid") return;
+
+    if(!deductedMap[productId]){
+      deductedMap[productId] = 0;
+    }
+
+    deductedMap[productId] += qty;
+  });
+
+  /* ==========================
+     FINAL STOCK CALCULATION
+  ========================== */
+  let html = "";
+
+  Object.keys(stockMap).forEach(pid=>{
+    const original = stockMap[pid];
+    const used = deductedMap[pid] || 0;
+    const remaining = Math.max(0, original - used);
+
+    html += `
+      <div class="product">
+        <b>Product ID:</b> ${pid}<br>
+        <b>Available Qty:</b> ${remaining}<br>
+        <small>Used: ${used}</small>
+      </div>
+    `;
+  });
+
+  document.getElementById("stockList").innerHTML =
+    html || "No stock data";
+
+})
+.catch(err=>{
+  console.error(err);
+  document.getElementById("stockList").innerText = "Error loading stock";
+});
