@@ -2,35 +2,67 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Orders</title>
+<title>Pardhu ERP – Orders</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:Arial;background:#f4f6f8}
-.header{background:#25d366;color:#fff;padding:15px;text-align:center}
-.container{padding:15px}
-.order{background:#fff;padding:12px;margin-bottom:10px;border-radius:10px}
-.badge{padding:4px 8px;border-radius:6px;font-size:12px;color:#fff}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f4f6f8;
+}
+.header{
+  background:#25d366;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+}
+.container{
+  padding:15px;
+}
+button{
+  padding:10px 14px;
+  border:none;
+  background:#25d366;
+  color:#fff;
+  border-radius:6px;
+  cursor:pointer;
+}
+.order{
+  background:#fff;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  font-size:14px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  color:#fff;
+}
 .pending{background:#ff9800}
 .completed{background:#4caf50}
 .cancelled{background:#f44336}
-button{
-  width:100%;padding:12px;margin-bottom:12px;
-  background:#25d366;color:#fff;border:none;border-radius:6px
-}
+.small{font-size:12px;color:#666}
 </style>
 </head>
 
 <body>
 
 <script>
+/* ===== AUTH + RBAC ===== */
 const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules")||"").toLowerCase();
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
 
 if(!role){
   location.replace("index.html");
 }
-if(modules!=="all" && !modules.includes("orders")){
+
+if(modules !== "all" && !modules.includes("orders")){
   alert("Access denied");
   location.replace("dashboard.html");
 }
@@ -39,12 +71,5 @@ if(modules!=="all" && !modules.includes("orders")){
 <div class="header">Orders</div>
 
 <div class="container">
-  <!-- JS will insert Create button here -->
-  <div id="orderActions"></div>
 
-  <div id="orderList">Loading...</div>
-</div>
-
-<script src="orders.js"></script>
-</body>
-</html>
+  <!-- Create Order (Staff + Admin + Super)
