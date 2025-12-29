@@ -26,6 +26,19 @@ body{
   cursor:pointer;
   margin-bottom:10px;
   display:inline-block;
+  font-weight:bold;
+}
+.create-btn{
+  width:100%;
+  padding:14px;
+  margin:10px 0 15px;
+  background:#25d366;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
 }
 .order{
   background:#fff;
@@ -73,9 +86,18 @@ if(modules !== "all" && !modules.split(",").includes("orders")){
 
 <div class="container">
   <div class="back" onclick="history.back()">← Back</div>
+
+  <!-- ➕ CREATE ORDER -->
+  <button class="create-btn"
+    onclick="window.location.href='orders-create.html'">
+    ➕ Create Order
+  </button>
+
+  <!-- ORDERS LIST -->
   <div id="orderList">Loading...</div>
 </div>
 
 <script src="orders.js"></script>
+
 </body>
 </html>
