@@ -1,62 +1,58 @@
+/* ===============================
+   PARDHU ERP – STOCK MODULE
+   READ ONLY (AUTO CALCULATED)
+================================ */
+
 const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
+const SHEET_NAME = "stock";
 
-const PRODUCTS_SHEET = "products";
-const STOCK_SHEET = "stock";
+/* ===== FETCH STOCK DATA ===== */
+fetch(
+  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`
+)
+  .then(res => res.text())
+  .then(text => {
+    const json = JSON.parse(
+      text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+    );
 
-/* Fetch both sheets */
-Promise.all([
-  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${PRODUCTS_SHEET}`)
-    .then(r => r.text()),
-  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${STOCK_SHEET}`)
-    .then(r => r.text())
-])
-.then(([pText, sText]) => {
+    let html = "";
 
-  const productsJSON = JSON.parse(
-    pText.substring(pText.indexOf('{'), pText.lastIndexOf('}') + 1)
-  );
-  const stockJSON = JSON.parse(
-    sText.substring(sText.indexOf('{'), sText.lastIndexOf('}') + 1)
-  );
+    json.table.rows.forEach(r => {
+      if (!r.c) return;
 
-  /* Build product map */
-  const productMap = {};
-  productsJSON.table.rows.forEach(r => {
-    if(!r.c) return;
-    productMap[r.c[0].v] = {
-      name: r.c[1].v,
-      category: r.c[4].v,
-      active: (r.c[5].v || "").toLowerCase()
-    };
+      /*
+        stock sheet columns:
+        A = product_id
+        B = opening_stock
+        C = sold_qty
+        D = available_qty
+        E = last_updated
+      */
+
+      const productId = r.c[0]?.v ?? "-";
+      const opening   = r.c[1]?.v ?? 0;
+      const sold      = r.c[2]?.v ?? 0;
+      const available = r.c[3]?.v ?? 0;
+      const updated   = r.c[4]?.v ?? "-";
+
+      html += `
+        <div class="product">
+          <b>Product ID:</b> ${productId}<br>
+          Opening Stock: ${opening}<br>
+          Sold Qty: ${sold}<br>
+          <b>Available Qty:</b> ${available}<br>
+          <small>Updated: ${updated}</small>
+        </div>
+      `;
+    });
+
+    document.getElementById("stockList").innerHTML =
+      html || "No stock data available";
+
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("stockList").innerText =
+      "Error loading stock data";
   });
-
-  let html = "";
-
-  stockJSON.table.rows.forEach(r => {
-    if(!r.c) return;
-
-    const productId = r.c[0]?.v;
-    const qty = r.c[1]?.v;
-    const updated = r.c[2]?.v;
-
-    const product = productMap[productId];
-    if(!product || product.active !== "yes") return;
-
-    html += `
-      <div class="stock">
-        <b>${product.name}</b><br>
-        Category: ${product.category}<br>
-        Available Qty: ${qty}<br>
-        <span class="small">Updated: ${updated}</span>
-      </div>
-    `;
-  });
-
-  document.getElementById("stockList").innerHTML =
-    html || "No stock data available";
-
-})
-.catch(() => {
-  document.getElementById("stockList").innerText =
-    "Error loading stock data";
-});
