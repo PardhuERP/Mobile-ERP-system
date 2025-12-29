@@ -48,6 +48,20 @@ button:disabled{
 </head>
 
 <body>
+  <script>
+const user = localStorage.getItem("user");
+const role = localStorage.getItem("role");
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
+
+if(!user || !role){
+  alert("Session expired. Please login.");
+  window.location.replace("index.html");
+}
+
+if(modules !== "all" && !modules.split(",").includes("orders")){
+  alert("Access denied");
+  window.location.replace("dashboard.html");
+}
 
 <!-- ===== AUTH + RBAC (SAFE) ===== -->
 <script>
