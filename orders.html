@@ -85,7 +85,13 @@ if(modules !== "all" && !modules.split(",").includes("orders")){
 <div class="header">Orders</div>
 
 <div class="container">
-  <div class="back" onclick="history.back()">← Back</div>
+<div class="back" onclick="goBack()">← Back</div>
+
+<script>
+function goBack(){
+  window.location.href = "dashboard.html";
+}
+</script>
 
   <!-- ➕ CREATE ORDER -->
   <button class="create-btn"
