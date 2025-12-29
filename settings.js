@@ -4,45 +4,45 @@ const SHEET_NAME = "settings";
 const company = (localStorage.getItem("company") || "").toLowerCase();
 
 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`)
-  .then(res => res.text())
-  .then(text => {
-    const json = JSON.parse(
-      text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
-    );
+.then(res => res.text())
+.then(text => {
 
-    let html = "";
+  const json = JSON.parse(
+    text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
+  );
 
-    json.table.rows.forEach(r => {
-      if(!r.c) return;
+  let html = "";
 
-      const key = (r.c[0]?.v || "").toLowerCase();
-      const value = (r.c[1]?.v || "").toLowerCase();
-      const rowCompany = (r.c[2]?.v || "").toLowerCase();
+  json.table.rows.forEach(r=>{
+    if(!r.c) return;
 
-      if(rowCompany !== company) return;
+    const key = (r.c[0]?.v || "").toLowerCase();
+    const value = (r.c[1]?.v || "").toLowerCase();
+    const rowCompany = (r.c[2]?.v || "").toLowerCase();
 
-      // Save settings to localStorage (GLOBAL EFFECT)
-      localStorage.setItem(key, value);
+    if(rowCompany !== company) return;
 
-      // Apply theme instantly
-      if(key === "theme_color"){
-        document.documentElement.style.setProperty("--theme", value);
-        document.querySelector(".header").style.background = value;
-      }
+    // Save globally
+    localStorage.setItem(key, value);
 
-      html += `
-        <div class="setting">
-          <div class="key">${key}</div>
-          <div class="value">${value}</div>
-        </div>
-      `;
-    });
+    // Apply theme immediately
+    if(key === "theme_color"){
+      document.querySelector(".header").style.background = value;
+    }
 
-    document.getElementById("settingsList").innerHTML =
-      html || "No settings found";
-
-  })
-  .catch(() => {
-    document.getElementById("settingsList").innerText =
-      "Error loading settings";
+    html += `
+      <div class="setting">
+        <div class="key">${key}</div>
+        <div class="value">${value}</div>
+      </div>
+    `;
   });
+
+  document.getElementById("settingsList").innerHTML =
+    html || "No settings found";
+
+})
+.catch(()=>{
+  document.getElementById("settingsList").innerText =
+    "Error loading settings";
+});
