@@ -85,6 +85,30 @@ if(!user || !role){
 </div>
 
 <div class="container">
+  <!-- ===== KPI CARDS ===== -->
+<div class="grid" id="kpiGrid" style="margin-bottom:20px">
+
+  <div class="card">
+    <h3>Today Orders</h3>
+    <b id="kpiOrders">0</b>
+  </div>
+
+  <div class="card">
+    <h3>Sales (₹)</h3>
+    <b id="kpiSales">0</b>
+  </div>
+
+  <div class="card">
+    <h3>Paid (₹)</h3>
+    <b id="kpiPaid">0</b>
+  </div>
+
+  <div class="card">
+    <h3>Balance (₹)</h3>
+    <b id="kpiBalance">0</b>
+  </div>
+
+</div>
 
   <!-- ===== DASHBOARD MODULES ===== -->
   <div class="grid">
@@ -215,6 +239,48 @@ document.querySelectorAll(".card").forEach(card=>{
   if(settingKey && localStorage.getItem(settingKey) === "no"){
     card.style.display = "none";
   }
+});
+  </script>
+/* ===== DASHBOARD KPI ===== */
+
+const KPI_SHEET = "orders";
+const company = (localStorage.getItem("company") || "").toLowerCase();
+
+const today = new Date().toISOString().slice(0,10);
+
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${KPI_SHEET}&t=${Date.now()}`)
+.then(res => res.text())
+.then(text => {
+
+  const json = JSON.parse(
+    text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
+  );
+
+  let orders = 0;
+  let sales = 0;
+  let paid = 0;
+  let balance = 0;
+
+  json.table.rows.forEach(r=>{
+    if(!r.c) return;
+
+    const rowDate = r.c[1]?.v;
+    const rowCompany = (r.c[3]?.v || "").toLowerCase();
+
+    if(rowCompany !== company) return;
+    if(rowDate !== today) return;
+
+    orders++;
+    sales += Number(r.c[7]?.v || 0);
+    paid += Number(r.c[8]?.v || 0);
+    balance += Number(r.c[9]?.v || 0);
+  });
+
+  document.getElementById("kpiOrders").innerText = orders;
+  document.getElementById("kpiSales").innerText = sales;
+  document.getElementById("kpiPaid").innerText = paid;
+  document.getElementById("kpiBalance").innerText = balance;
+
 });
   </script>
 
