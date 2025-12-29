@@ -1,111 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Pardhu ERP – Orders</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+/* =========================
+   UTIL: SAFE DATE FORMAT
+========================= */
+function formatDate(v){
+  if(!v) return "";
+  if(typeof v === "string") return v;
 
-<style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#f4f6f8;
-}
-.header{
-  background:#25d366;
-  color:#fff;
-  padding:15px;
-  text-align:center;
-  font-size:18px;
-}
-.container{
-  padding:15px;
-}
-.back{
-  color:#25d366;
-  cursor:pointer;
-  margin-bottom:10px;
-  display:inline-block;
-  font-weight:bold;
-}
-.create-btn{
-  width:100%;
-  padding:14px;
-  margin:10px 0 15px;
-  background:#25d366;
-  color:#fff;
-  border:none;
-  border-radius:10px;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
-}
-.order{
-  word-break: break-word;
-  white-space: normal;
-  background:#fff;
-  padding:12px;
-  margin-bottom:10px;
-  border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
-  font-size:14px;
-}
-.badge{
-  display:inline-block;
-  padding:4px 8px;
-  border-radius:6px;
-  font-size:12px;
-  color:#fff;
-}
-.pending{ background:#ff9800; }
-.completed{ background:#4caf50; }
-.cancelled{ background:#f44336; }
-.small{
-  font-size:12px;
-  color:#555;
-}
-</style>
-</head>
-
-<body>
-
-<!-- ===== AUTH + RBAC ===== -->
-<script>
-const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules") || "").toLowerCase();
-
-if(!role){
-  window.location.href = "index.html";
+  if(v.getFullYear){
+    const y = v.getFullYear();
+    const m = String(v.getMonth() + 1).padStart(2, "0");
+    const d = String(v.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  return "";
 }
 
-if(modules !== "all" && !modules.split(",").includes("orders")){
-  alert("Access denied");
-  window.location.href = "dashboard.html";
-}
-</script>
+/* =========================
+   GOOGLE SHEET CONFIG
+========================= */
+const SHEET_ID   = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
+const SHEET_NAME = "orders";
 
-<div class="header">Orders</div>
+/* =========================
+   FETCH ORDERS
+========================= */
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`)
+  .then(res => res.text())
+  .then(text => {
 
-<div class="container">
-<div class="back" onclick="goBack()">← Back</div>
+    const json = JSON.parse(
+      text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+    );
 
-<script>
-function goBack(){
-  window.location.href = "dashboard.html";
-}
-</script>
+    let html = "";
 
-  <!-- ➕ CREATE ORDER -->
-  <button class="create-btn"
-    onclick="window.location.href='orders-create.html'">
-    ➕ Create Order
-  </button>
+    json.table.rows.forEach(r => {
+      if(!r.c) return;
 
-  <!-- ORDERS LIST -->
-  <div id="orderList">Loading...</div>
-</div>
+      const orderId  = r.c[0]?.v ?? "";
+      const date     = formatDate(r.c[1]?.v);
+      const customer = r.c[2]?.v ?? "";
+      const product  = r.c[3]?.v ?? "";
 
-<script src="orders.js"></script>
+      const qty      = Number(r.c[4]?.v ?? 0);
+      const total    = Number(r.c[5]?.v ?? 0);
+      const paid     = Number(r.c[6]?.v ?? 0);
+      const balance  = Number(r.c[7]?.v ?? 0);
 
-</body>
-</html>
+      /* SAFE STATUS HANDLING */
+      const statusRaw = r.c[8]?.v;
+      const status =
+        statusRaw === undefined || statusRaw === null
+          ? "pending"
+          : String(statusRaw).toLowerCase();
+
+      html += `
+        <div class="order">
+          <b>Order #${orderId}</b><br>
+          <small>${date}</small><br><br>
+
+          Customer: ${customer}<br>
+          Product: ${product}<br>
+          Qty: ${qty}<br>
+          Total: ₹${total}<br>
+          Paid: ₹${paid}<br>
+          Balance: ₹${balance}<br><br>
+
+          <span class="badge ${status}">
+            ${status.toUpperCase()}
+          </span>
+        </div>
+      `;
+    });
+
+    document.getElementById("orderList").innerHTML =
+      html || "No orders found";
+
+  })
+  .catch(err => {
+    console.error("ORDERS LOAD ERROR:", err);
+    document.getElementById("orderList").innerText =
+      "Error loading orders";
+  });
