@@ -26,14 +26,14 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
   json.table.rows.forEach(r => {
     if(!r.c) return;
 
-    const orderId  = String(r.c[0]?.v ?? r.c[0]?.f ?? "").trim();
-    const date     = formatDate(r.c[1]?.v);
+    const orderId = String(r.c[0]?.v ?? r.c[0]?.f ?? "").trim();
+    const date = formatDate(r.c[1]?.v);
     const customer = r.c[2]?.v || "";
-    const product  = r.c[4]?.v || "";
-    const qty      = Number(r.c[6]?.v || 0);
-    const total    = Number(r.c[7]?.v || 0);
-    const paid     = Number(r.c[8]?.v || 0);
-    const balance  = Number(r.c[9]?.v || 0);
+    const product = r.c[4]?.v || "";
+    const qty = Number(r.c[6]?.v || 0);
+    const total = Number(r.c[7]?.v || 0);
+    const paid = Number(r.c[8]?.v || 0);
+    const balance = Number(r.c[9]?.v || 0);
 
     const statusRaw = r.c[12]?.v;
     const status = statusRaw ? String(statusRaw).toLowerCase() : "pending";
