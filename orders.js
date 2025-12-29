@@ -14,15 +14,21 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
     json.table.rows.forEach(r => {
       if (!r.c) return;
 
-      const orderId  = r.c[0]?.v || "";
-      const date     = r.c[1]?.v || "";
-      const customer = r.c[2]?.v || "";
-      const product  = r.c[3]?.v || "";
-      const qty      = r.c[4]?.v || 0;
-      const total    = r.c[5]?.v || 0;
-      const paid     = r.c[6]?.v || 0;
-      const balance  = r.c[7]?.v || 0;
-      const status   = (r.c[8]?.v || "pending").toLowerCase();
+      const orderId  = r.c[0]?.v ?? "";
+      const date     = r.c[1]?.v ?? "";
+      const customer = r.c[2]?.v ?? "";
+      const product  = r.c[3]?.v ?? "";
+      const qty      = Number(r.c[4]?.v ?? 0);
+      const total    = Number(r.c[5]?.v ?? 0);
+      const paid     = Number(r.c[6]?.v ?? 0);
+      const balance  = Number(r.c[7]?.v ?? 0);
+
+      // ✅ SAFE STRING CONVERSION (THIS FIXES YOUR ERROR)
+      const statusRaw = r.c[8]?.v;
+      const status =
+        statusRaw === undefined || statusRaw === null
+          ? "pending"
+          : String(statusRaw).toLowerCase();
 
       html += `
         <div class="order">
