@@ -1,68 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Create Order</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#f4f6f8;
-}
-.header{
-  background:#25d366;
-  color:#fff;
-  padding:15px;
-  text-align:center;
-  font-size:18px;
-}
-.container{
-  padding:15px;
-}
-input, select, button{
-  width:100%;
-  padding:12px;
-  margin-bottom:10px;
-  border-radius:6px;
-  border:1px solid #ccc;
-  font-size:14px;
-}
-button{
-  background:#25d366;
-  color:#fff;
-  border:none;
-  cursor:pointer;
-}
-button:disabled{
-  background:#9e9e9e;
-}
-.back{
-  color:#25d366;
-  margin-bottom:10px;
-  display:inline-block;
-  cursor:pointer;
-}
+body{margin:0;font-family:Arial;background:#f4f6f8}
+.header{background:#25d366;color:#fff;padding:15px;text-align:center}
+.container{padding:15px}
+input,select,button{width:100%;padding:12px;margin-bottom:10px}
+button{background:#25d366;color:#fff;border:none}
+button:disabled{background:#999}
 </style>
 </head>
 
 <body>
 
 <script>
-/* ===== AUTH + RBAC GUARD ===== */
-const user = localStorage.getItem("user");
 const role = localStorage.getItem("role");
-const modulesRaw = localStorage.getItem("modules");
-
-if(!user || !role || !modulesRaw){
-  alert("Session expired. Please login.");
-  location.replace("index.html");
-}
-
-const modules = modulesRaw.toLowerCase().split(",");
-
-if(!(modulesRaw === "all" || modules.includes("orders"))){
+const modules = (localStorage.getItem("modules")||"").toLowerCase();
+if(!role) location.replace("index.html");
+if(modules!=="all" && !modules.split(",").includes("orders")){
   alert("Access denied");
   location.replace("dashboard.html");
 }
@@ -71,86 +29,59 @@ if(!(modulesRaw === "all" || modules.includes("orders"))){
 <div class="header">Create Order</div>
 
 <div class="container">
-  <div class="back" onclick="location.href='orders.html'">← Back</div>
-
-  <input id="customer" placeholder="Customer Name">
-  <input id="product" placeholder="Product Name">
+  <input id="customer" placeholder="Customer">
+  <input id="product" placeholder="Product">
   <input id="product_id" placeholder="Product ID">
-  <input id="qty" type="number" placeholder="Quantity">
-  <input id="total" type="number" placeholder="Total Amount">
-  <input id="paid" type="number" placeholder="Paid Amount">
+  <input id="qty" type="number" placeholder="Qty">
+  <input id="total" type="number" placeholder="Total">
+  <input id="paid" type="number" placeholder="Paid">
 
   <select id="payment_mode">
     <option value="cash">Cash</option>
     <option value="upi">UPI</option>
-    <option value="card">Card</option>
   </select>
 
-  <button id="submitBtn" onclick="createOrder()">Create Order</button>
+  <button id="btn" onclick="createOrder()">Create Order</button>
 </div>
 
 <script>
-/* ===== CREATE ORDER ===== */
-
-const API_URL =
-"https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
-
-let isSubmitting = false;
+const API_URL="https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
+let lock=false;
 
 function createOrder(){
+  if(lock) return;
+  lock=true;
 
-  if(isSubmitting) return;
-  isSubmitting = true;
+  const btn=document.getElementById("btn");
+  btn.disabled=true;
+  btn.innerText="Saving...";
 
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.innerText = "Saving...";
+  const data=new URLSearchParams();
+  data.append("customer",customer.value);
+  data.append("product",product.value);
+  data.append("product_id",product_id.value);
+  data.append("qty",qty.value);
+  data.append("total",total.value);
+  data.append("paid",paid.value);
+  data.append("balance",total.value-paid.value);
+  data.append("company",localStorage.getItem("company"));
+  data.append("created_by",localStorage.getItem("user"));
 
-  const qtyVal   = Number(qty.value || 0);
-  const totalVal = Number(total.value || 0);
-  const paidVal  = Number(paid.value || 0);
-
-  if(!customer.value || !product.value || qtyVal <= 0){
-    alert("Please fill all required fields");
-    btn.disabled = false;
-    btn.innerText = "Create Order";
-    isSubmitting = false;
-    return;
-  }
-
-  const formData = new URLSearchParams();
-  formData.append("customer", customer.value.trim());
-  formData.append("product", product.value.trim());
-  formData.append("product_id", product_id.value.trim());
-  formData.append("qty", qtyVal);
-  formData.append("total", totalVal);
-  formData.append("paid", paidVal);
-  formData.append("balance", totalVal - paidVal);
-  formData.append("company", localStorage.getItem("company"));
-  formData.append("payment_mode", payment_mode.value);
-  formData.append("created_by", user);
-
-  fetch(API_URL,{
-    method:"POST",
-    body: formData
-  })
-  .then(res => res.json())
-  .then(result => {
-    if(result.success){
-      alert("✅ Order saved\nOrder ID: " + result.order_id);
+  fetch(API_URL,{method:"POST",body:data})
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.success){
+      alert("Order created: "+res.order_id);
       location.replace("orders.html");
     }else{
-      throw result.error;
+      alert(res.error);
     }
   })
-  .catch(err=>{
-    console.error(err);
-    alert("❌ Server / Network error");
-  })
+  .catch(()=>alert("Network error"))
   .finally(()=>{
-    isSubmitting = false;
-    btn.disabled = false;
-    btn.innerText = "Create Order";
+    lock=false;
+    btn.disabled=false;
+    btn.innerText="Create Order";
   });
 }
 </script>
