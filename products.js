@@ -23,7 +23,8 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
           <b>${r.c[1]?.v}</b><br>
           Price: ₹${r.c[2]?.v}<br>
           Stock: ${r.c[3]?.v}<br>
-          <span class="badge">${r.c[4]?.v}</span>
+          <span class="badge">${r.c[4]?.v}
+          </span>
         </div>
       `;
     });
