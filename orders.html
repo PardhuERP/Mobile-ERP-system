@@ -87,6 +87,8 @@ if(modules !== "all" && !modules.split(",").includes("orders")){
   <button id="createOrderBtn"
     onclick="window.location.href='orders-create.html'">
     ➕ Create Order
+    <button onclick="editOrder('RM-A000001')">✏️ Edit</button>
+<button onclick="cancelOrder('RM-A000001')">❌ Cancel</button>
   </button>
 
   <div id="orderList">Loading...</div>
