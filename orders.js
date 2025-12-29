@@ -14,56 +14,55 @@ const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
 const SHEET_NAME = "orders";
 
 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`)
-  .then(res => res.text())
-  .then(text => {
+.then(res => res.text())
+.then(text => {
 
-    const json = JSON.parse(
-      text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
-    );
+  const json = JSON.parse(
+    text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+  );
 
-    let html = "";
+  let html = "";
 
-    json.table.rows.forEach(r => {
-      if(!r.c) return;
+  json.table.rows.forEach(r => {
+    if(!r.c) return;
 
-      const orderId  = r.c[0]?.v || "";
-      const date     = formatDate(r.c[1]?.v);
-      const customer = r.c[2]?.v || "";
-      const product  = r.c[4]?.v || "";
-      const qty      = Number(r.c[6]?.v || 0);
-      const total    = Number(r.c[7]?.v || 0);
-      const paid     = Number(r.c[8]?.v || 0);
-      const balance  = Number(r.c[9]?.v || 0);
+    const orderId  = String(r.c[0]?.v ?? r.c[0]?.f ?? "").trim();
+    const date     = formatDate(r.c[1]?.v);
+    const customer = r.c[2]?.v || "";
+    const product  = r.c[4]?.v || "";
+    const qty      = Number(r.c[6]?.v || 0);
+    const total    = Number(r.c[7]?.v || 0);
+    const paid     = Number(r.c[8]?.v || 0);
+    const balance  = Number(r.c[9]?.v || 0);
 
-      const statusRaw = r.c[12]?.v;
-      const status =
-        statusRaw ? String(statusRaw).toLowerCase() : "pending";
+    const statusRaw = r.c[12]?.v;
+    const status = statusRaw ? String(statusRaw).toLowerCase() : "pending";
 
-      html += `
-        <div class="order">
-          <b>Order #${orderId}</b><br>
-          <small>${date}</small><br><br>
+    html += `
+      <div class="order">
+        <b>Order #${orderId}</b><br>
+        <small>${date}</small><br><br>
 
-          Customer: ${customer}<br>
-          Product: ${product}<br>
-          Qty: ${qty}<br>
-          Total: ₹${total}<br>
-          Paid: ₹${paid}<br>
-          Balance: ₹${balance}<br>
+        Customer: ${customer}<br>
+        Product: ${product}<br>
+        Qty: ${qty}<br>
+        Total: ₹${total}<br>
+        Paid: ₹${paid}<br>
+        Balance: ₹${balance}<br>
 
-          <span class="badge ${status}">
-            ${status.toUpperCase()}
-          </span>
-        </div>
-      `;
-    });
-
-    document.getElementById("orderList").innerHTML =
-      html || "No orders found";
-
-  })
-  .catch(err => {
-    console.error("ORDERS LOAD ERROR:", err);
-    document.getElementById("orderList").innerText =
-      "Error loading orders";
+        <span class="badge ${status}">
+          ${status.toUpperCase()}
+        </span>
+      </div>
+    `;
   });
+
+  document.getElementById("orderList").innerHTML =
+    html || "No orders found";
+
+})
+.catch(err => {
+  console.error("ORDERS LOAD ERROR:", err);
+  document.getElementById("orderList").innerText =
+    "Error loading orders";
+});
