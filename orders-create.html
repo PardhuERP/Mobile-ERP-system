@@ -1,26 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Create Order</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body{margin:0;font-family:Arial;background:#f4f6f8}
-.header{background:#25d366;color:#fff;padding:15px;text-align:center}
-.container{padding:15px}
-input,select,button{width:100%;padding:12px;margin-bottom:10px}
-button{background:#25d366;color:#fff;border:none}
-button:disabled{background:#999}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f4f6f8;
+}
+.header{
+  background:#25d366;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+}
+.container{
+  padding:15px;
+}
+input, select, button{
+  width:100%;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:6px;
+  border:1px solid #ccc;
+  font-size:14px;
+}
+button{
+  background:#25d366;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+button:disabled{
+  background:#9e9e9e;
+}
+.back{
+  color:#25d366;
+  margin-bottom:10px;
+  display:inline-block;
+  cursor:pointer;
+}
 </style>
 </head>
 
 <body>
 
+<!-- ===== AUTH + RBAC ===== -->
 <script>
 const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules")||"").toLowerCase();
-if(!role) location.replace("index.html");
-if(modules!=="all" && !modules.split(",").includes("orders")){
+const modulesRaw = localStorage.getItem("modules");
+
+if(!role || !modulesRaw){
+  alert("Session expired. Please login.");
+  location.replace("index.html");
+}
+
+const modules = modulesRaw.toLowerCase().split(",");
+
+if(!(modules.includes("orders") || modulesRaw === "all")){
   alert("Access denied");
   location.replace("dashboard.html");
 }
@@ -29,60 +70,69 @@ if(modules!=="all" && !modules.split(",").includes("orders")){
 <div class="header">Create Order</div>
 
 <div class="container">
-  <input id="customer" placeholder="Customer">
-  <input id="product" placeholder="Product">
+  <div class="back" onclick="location.href='orders.html'">← Back</div>
+
+  <input id="customer" placeholder="Customer Name">
+  <input id="product" placeholder="Product Name">
   <input id="product_id" placeholder="Product ID">
-  <input id="qty" type="number" placeholder="Qty">
-  <input id="total" type="number" placeholder="Total">
-  <input id="paid" type="number" placeholder="Paid">
+  <input id="qty" type="number" placeholder="Quantity">
+  <input id="total" type="number" placeholder="Total Amount">
+  <input id="paid" type="number" placeholder="Paid Amount">
 
   <select id="payment_mode">
     <option value="cash">Cash</option>
     <option value="upi">UPI</option>
+    <option value="card">Card</option>
   </select>
 
-  <button id="btn" onclick="createOrder()">Create Order</button>
+  <!-- ✅ IMPORTANT: ID IS REQUIRED -->
+  <button id="submitBtn" type="button">Create Order</button>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
-let submitting = false;
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
+
+let isSubmitting = false;
+
+document.getElementById("submitBtn").addEventListener("click", createOrder);
 
 function createOrder(){
-  if(submitting) return;
-  submitting = true;
+
+  if(isSubmitting) return;
+  isSubmitting = true;
 
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
   btn.innerText = "Saving...";
 
-  const qtyVal = Number(qty.value || 0);
-  const totalVal = Number(total.value || 0);
-  const paidVal = Number(paid.value || 0);
+  const qtyVal   = Number(document.getElementById("qty").value || 0);
+  const totalVal = Number(document.getElementById("total").value || 0);
+  const paidVal  = Number(document.getElementById("paid").value || 0);
 
   const formData = new URLSearchParams();
-  formData.append("customer", customer.value.trim());
-  formData.append("product", product.value.trim());
-  formData.append("product_id", product_id.value.trim());
+  formData.append("customer", document.getElementById("customer").value.trim());
+  formData.append("product", document.getElementById("product").value.trim());
+  formData.append("product_id", document.getElementById("product_id").value.trim());
   formData.append("qty", qtyVal);
   formData.append("total", totalVal);
   formData.append("paid", paidVal);
   formData.append("balance", totalVal - paidVal);
   formData.append("company", localStorage.getItem("company"));
-  formData.append("payment_mode", payment_mode.value);
+  formData.append("payment_mode", document.getElementById("payment_mode").value);
   formData.append("created_by", localStorage.getItem("user"));
 
   fetch(API_URL, {
     method: "POST",
     body: formData
   })
-  .then(r => r.json())
-  .then(res => {
-    if(res.success){
-      alert("✅ Order created: " + res.order_id);
-      location.href = "orders.html";
-    } else {
-      alert("❌ " + res.error);
+  .then(res => res.json())
+  .then(result => {
+    if(result.success){
+      alert("✅ Order saved\nOrder ID: " + result.order_id);
+      location.replace("orders.html");
+    }else{
+      alert("❌ Server error: " + result.error);
     }
   })
   .catch(err => {
@@ -90,7 +140,7 @@ function createOrder(){
     alert("❌ Network / API error");
   })
   .finally(()=>{
-    submitting = false;
+    isSubmitting = false;
     btn.disabled = false;
     btn.innerText = "Create Order";
   });
