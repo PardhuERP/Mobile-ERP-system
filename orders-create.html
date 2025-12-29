@@ -78,42 +78,30 @@ if(modules !== "all" && !modules.split(",").includes("orders")){
     <option value="upi">UPI</option>
     <option value="card">Card</option>
   </select>
-  <button type="button"
-    onclick="createOrder()">Create Order</button>
+
+  <button type="button" onclick="createOrder()">Create Order</button>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
-
-function createOrder(){
-  const data = {
-    customer: customer.value,
-    product: product.value,
-    product_id: product_id.value,
-    qty: qty.value,
-    total: total.value,
-    paid: paid.value,
-    balance: (total.value - paid.value),
-    company: localStorage.getItem("company"),
-    payment_mode: payment_mode.value,
-    created_by: localStorage.getItem("user")
-  };
-
-  <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
 
 function createOrder(){
 
   const formData = new URLSearchParams();
-  formData.append("customer", customer.value);
-  formData.append("product", product.value);
-  formData.append("product_id", product_id.value);
-  formData.append("qty", qty.value);
-  formData.append("total", total.value);
-  formData.append("paid", paid.value);
-  formData.append("balance", (total.value - paid.value));
+  formData.append("customer", document.getElementById("customer").value);
+  formData.append("product", document.getElementById("product").value);
+  formData.append("product_id", document.getElementById("product_id").value);
+  formData.append("qty", document.getElementById("qty").value);
+  formData.append("total", document.getElementById("total").value);
+  formData.append("paid", document.getElementById("paid").value);
+  formData.append(
+    "balance",
+    Number(document.getElementById("total").value || 0) -
+    Number(document.getElementById("paid").value || 0)
+  );
   formData.append("company", localStorage.getItem("company"));
-  formData.append("payment_mode", payment_mode.value);
+  formData.append("payment_mode", document.getElementById("payment_mode").value);
   formData.append("created_by", localStorage.getItem("user"));
 
   fetch(API_URL, {
@@ -124,7 +112,7 @@ function createOrder(){
   .then(result => {
     if(result.success){
       alert("Order saved successfully. Order ID: " + result.order_id);
-      location.href = "orders.html";
+      window.location.href = "orders.html";
     }else{
       alert("Server error: " + result.error);
     }
