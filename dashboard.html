@@ -198,6 +198,25 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
       "Error loading products";
   });
 </script>
+  <script>
+/* ===== APPLY SETTINGS ===== */
+
+const moduleMap = {
+  orders: "allow_orders",
+  stock: "allow_stock",
+  reports: "allow_reports",
+  employees: "allow_employees"
+};
+
+document.querySelectorAll(".card").forEach(card=>{
+  const mod = card.dataset.module;
+  const settingKey = moduleMap[mod];
+
+  if(settingKey && localStorage.getItem(settingKey) === "no"){
+    card.style.display = "none";
+  }
+});
+  </script>
 
 </body>
 </html>
