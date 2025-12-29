@@ -35,6 +35,9 @@ button{
   border:none;
   cursor:pointer;
 }
+button:disabled{
+  opacity:0.6;
+}
 .back{
   color:#25d366;
   margin-bottom:10px;
@@ -64,13 +67,7 @@ if(modules !== "all" && !modules.split(",").includes("orders")){
 <div class="header">Create Order</div>
 
 <div class="container">
- <div class="back" onclick="goBack()">← Back</div>
-
-<script>
-function goBack(){
-  window.location.href = "dashboard.html";
-}
-</script> 
+  <div class="back" onclick="goBack()">← Back</div>
 
   <input id="customer" placeholder="Customer Name">
   <input id="product" placeholder="Product Name">
@@ -85,29 +82,42 @@ function goBack(){
     <option value="card">Card</option>
   </select>
 
-  <button type="button" onclick="createOrder()">Create Order</button>
+  <button id="submitBtn" type="button" onclick="createOrder()">
+    Create Order
+  </button>
 </div>
 
 <script>
-const API_URL =
-"https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
+
+function goBack(){
+  window.location.href = "dashboard.html";
+}
 
 function createOrder(){
 
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerText = "Saving...";
+
+  // validation
+  if(!customer.value || !product.value || !qty.value){
+    alert("Fill required fields");
+    btn.disabled = false;
+    btn.innerText = "Create Order";
+    return;
+  }
+
   const formData = new URLSearchParams();
-  formData.append("customer", document.getElementById("customer").value);
-  formData.append("product", document.getElementById("product").value);
-  formData.append("product_id", document.getElementById("product_id").value);
-  formData.append("qty", document.getElementById("qty").value);
-  formData.append("total", document.getElementById("total").value);
-  formData.append("paid", document.getElementById("paid").value);
-  formData.append(
-    "balance",
-    Number(document.getElementById("total").value || 0) -
-    Number(document.getElementById("paid").value || 0)
-  );
+  formData.append("customer", customer.value);
+  formData.append("product", product.value);
+  formData.append("product_id", product_id.value);
+  formData.append("qty", Number(qty.value));
+  formData.append("total", Number(total.value || 0));
+  formData.append("paid", Number(paid.value || 0));
+  formData.append("balance", Number(total.value || 0) - Number(paid.value || 0));
   formData.append("company", localStorage.getItem("company"));
-  formData.append("payment_mode", document.getElementById("payment_mode").value);
+  formData.append("payment_mode", payment_mode.value);
   formData.append("created_by", localStorage.getItem("user"));
 
   fetch(API_URL, {
@@ -117,15 +127,19 @@ function createOrder(){
   .then(res => res.json())
   .then(result => {
     if(result.success){
-      alert("Order saved successfully. Order ID: " + result.order_id);
+      alert("Order saved. ID: " + result.order_id);
       window.location.href = "orders.html";
     }else{
-      alert("Server error: " + result.error);
+      alert("Server error");
+      btn.disabled = false;
+      btn.innerText = "Create Order";
     }
   })
   .catch(err => {
     console.error(err);
     alert("Network / API error");
+    btn.disabled = false;
+    btn.innerText = "Create Order";
   });
 }
 </script>
