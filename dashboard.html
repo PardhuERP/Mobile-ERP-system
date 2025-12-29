@@ -6,13 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+:root{
+  --theme:#25d366;
+}
 body{
   margin:0;
   font-family:Arial, sans-serif;
   background:#f4f6f8;
 }
 .header{
-  background:#25d366;
+  background:var(--theme);
   color:#fff;
   padding:15px;
   text-align:center;
@@ -39,14 +42,8 @@ body{
   box-shadow:0 4px 12px rgba(0,0,0,0.1);
   cursor:pointer;
 }
-.card h3{
-  margin:0;
-  font-size:16px;
-}
-.section-title{
-  margin:15px 0 10px;
-  font-size:18px;
-}
+.card h3{ margin:0; font-size:16px; }
+.section-title{ margin:15px 0 10px; font-size:18px; }
 .product{
   background:#fff;
   padding:10px;
@@ -73,6 +70,7 @@ body{
 <script>
 const user = localStorage.getItem("user");
 const role = localStorage.getItem("role");
+const company = (localStorage.getItem("company") || "").toLowerCase();
 
 if(!user || !role){
   window.location.href = "index.html";
@@ -85,67 +83,28 @@ if(!user || !role){
 </div>
 
 <div class="container">
+
   <!-- ===== KPI CARDS ===== -->
-<div class="grid" id="kpiGrid" style="margin-bottom:20px">
-
-  <div class="card">
-    <h3>Today Orders</h3>
-    <b id="kpiOrders">0</b>
+  <div class="grid" id="kpiGrid">
+    <div class="card"><h3>Today Orders</h3><b id="kpiOrders">0</b></div>
+    <div class="card"><h3>Sales (₹)</h3><b id="kpiSales">0</b></div>
+    <div class="card"><h3>Paid (₹)</h3><b id="kpiPaid">0</b></div>
+    <div class="card"><h3>Balance (₹)</h3><b id="kpiBalance">0</b></div>
   </div>
 
-  <div class="card">
-    <h3>Sales (₹)</h3>
-    <b id="kpiSales">0</b>
-  </div>
-
-  <div class="card">
-    <h3>Paid (₹)</h3>
-    <b id="kpiPaid">0</b>
-  </div>
-
-  <div class="card">
-    <h3>Balance (₹)</h3>
-    <b id="kpiBalance">0</b>
-  </div>
-
-</div>
-
-  <!-- ===== DASHBOARD MODULES ===== -->
+  <!-- ===== MODULES ===== -->
   <div class="grid">
 
-    <div class="card" data-module="products"
-         onclick="window.location.href='products.html'">
-      <h3>Products</h3>
-    </div>
-
-    <div class="card" data-module="stock"
-         onclick="window.location.href='stock.html'">
-      <h3>Stock</h3>
-    </div>
-
-    <div class="card" data-module="orders"
-         onclick="window.location.href='orders.html'">
-      <h3>Orders</h3>
-    </div>
-
-    <div class="card" data-module="reports"
-         onclick="window.location.href='reports.html'">
-      <h3>Reports</h3>
-    </div>
-
-    <div class="card" data-module="settings"
-         onclick="window.location.href='settings.html'">
-      <h3>Settings</h3>
-    </div>
-
-    <div class="card" data-module="employees"
-         onclick="window.location.href='employees.html'">
-      <h3>Employees</h3>
-    </div>
+    <div class="card" data-module="products" onclick="location.href='products.html'"><h3>Products</h3></div>
+    <div class="card" data-module="stock" onclick="location.href='stock.html'"><h3>Stock</h3></div>
+    <div class="card" data-module="orders" onclick="location.href='orders.html'"><h3>Orders</h3></div>
+    <div class="card" data-module="reports" onclick="location.href='reports.html'"><h3>Reports</h3></div>
+    <div class="card" data-module="settings" onclick="location.href='settings.html'"><h3>Settings</h3></div>
+    <div class="card" data-module="employees" onclick="location.href='employees.html'"><h3>Employees</h3></div>
 
   </div>
 
-  <!-- ===== LIVE PRODUCTS (ADMIN + SUPER ONLY) ===== -->
+  <!-- ===== LIVE PRODUCTS ===== -->
   <div id="liveProductsBlock" style="display:none">
     <div class="section-title">Products (Live)</div>
     <div id="productList">Loading...</div>
@@ -154,136 +113,93 @@ if(!user || !role){
   <div class="logout" onclick="logout()">Logout</div>
 </div>
 
+<!-- ================= RBAC ================= -->
 <script>
-/* ===== RBAC DASHBOARD ===== */
-
 const modulesRaw = (localStorage.getItem("modules") || "").toLowerCase();
-const allowed =
-  modulesRaw === "all"
-    ? ["all"]
-    : modulesRaw.split(",").map(m => m.trim());
+const allowed = modulesRaw === "all" ? ["all"] : modulesRaw.split(",").map(m=>m.trim());
 
 document.getElementById("roleText").innerText =
   role === "super" ? "Super Admin" :
   role === "admin" ? "Company Admin" : "Staff";
 
-/* Hide modules not allowed */
-document.querySelectorAll(".card").forEach(card => {
-  const mod = card.dataset.module;
-  if(allowed.includes("all")) return;
-  if(!allowed.includes(mod)){
-    card.style.display = "none";
-  }
-});
-
-/* Show live products only for super/admin */
-if(role === "super" || role === "admin"){
-  document.getElementById("liveProductsBlock").style.display = "block";
-}
-
-/* Logout */
-function logout(){
-  localStorage.clear();
-  window.location.href = "index.html";
-}
-
-/* ===== LIVE PRODUCTS FETCH ===== */
-const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
-const SHEET_NAME = "products";
-
-fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&t=${Date.now()}`)
-  .then(res => res.text())
-  .then(text => {
-    const json = JSON.parse(
-      text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
-    );
-
-    let html = "";
-    json.table.rows.forEach(r => {
-      if(!r.c) return;
-
-      // A id | B name | C price | D stock | E category | F active
-      if((r.c[5]?.v || "").toLowerCase() !== "yes") return;
-
-      html += `
-        <div class="product">
-          <b>${r.c[1]?.v}</b><br>
-          Price: ₹${r.c[2]?.v}<br>
-          Stock: ${r.c[3]?.v}
-        </div>
-      `;
-    });
-
-    document.getElementById("productList").innerHTML =
-      html || "No active products";
-  })
-  .catch(() => {
-    document.getElementById("productList").innerText =
-      "Error loading products";
-  });
-</script>
-  <script>
-/* ===== APPLY SETTINGS ===== */
-
-const moduleMap = {
-  orders: "allow_orders",
-  stock: "allow_stock",
-  reports: "allow_reports",
-  employees: "allow_employees"
-};
-
+/* Hide disallowed modules (skip KPI cards) */
 document.querySelectorAll(".card").forEach(card=>{
   const mod = card.dataset.module;
-  const settingKey = moduleMap[mod];
-
-  if(settingKey && localStorage.getItem(settingKey) === "no"){
-    card.style.display = "none";
-  }
+  if(!mod) return;
+  if(allowed.includes("all")) return;
+  if(!allowed.includes(mod)) card.style.display="none";
 });
-  </script>
+
+/* Live products only admin/super */
+if(role==="super" || role==="admin"){
+  document.getElementById("liveProductsBlock").style.display="block";
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href="index.html";
+}
 </script>
-/* ===== DASHBOARD KPI ===== */
 
-const KPI_SHEET = "orders";
-const company = (localStorage.getItem("company") || "").toLowerCase();
-
-const today = new Date().toISOString().slice(0,10);
-
-fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${KPI_SHEET}&t=${Date.now()}`)
-.then(res => res.text())
-.then(text => {
-
-  const json = JSON.parse(
-    text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
-  );
-
-  let orders = 0;
-  let sales = 0;
-  let paid = 0;
-  let balance = 0;
-
-  json.table.rows.forEach(r=>{
+<!-- ================= SETTINGS ================= -->
+<script>
+const SHEET_ID = "1ZG49Svf_a7sjtxv87Zx_tnk8_ymVurhcCm0YzrgKByo";
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=settings`)
+.then(r=>r.text()).then(t=>{
+  const j=JSON.parse(t.substring(t.indexOf('{'),t.lastIndexOf('}')+1));
+  j.table.rows.forEach(r=>{
     if(!r.c) return;
-
-    const rowDate = r.c[1]?.v;
-    const rowCompany = (r.c[3]?.v || "").toLowerCase();
-
-    if(rowCompany !== company) return;
-    if(rowDate !== today) return;
-
-    orders++;
-    sales += Number(r.c[7]?.v || 0);
-    paid += Number(r.c[8]?.v || 0);
-    balance += Number(r.c[9]?.v || 0);
+    if((r.c[2]?.v||"").toLowerCase()!==company) return;
+    const k=(r.c[0]?.v||"").toLowerCase();
+    const v=(r.c[1]?.v||"").toLowerCase();
+    localStorage.setItem(k,v);
+    if(k==="theme_color"){
+      document.documentElement.style.setProperty("--theme",v);
+    }
   });
-
-  document.getElementById("kpiOrders").innerText = orders;
-  document.getElementById("kpiSales").innerText = sales;
-  document.getElementById("kpiPaid").innerText = paid;
-  document.getElementById("kpiBalance").innerText = balance;
-
 });
-  </script>
+</script>
+
+<!-- ================= LIVE PRODUCTS ================= -->
+<script>
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=products`)
+.then(r=>r.text()).then(t=>{
+  const j=JSON.parse(t.substring(t.indexOf('{'),t.lastIndexOf('}')+1));
+  let html="";
+  j.table.rows.forEach(r=>{
+    if(!r.c) return;
+    if((r.c[5]?.v||"").toLowerCase()!=="yes") return;
+    html+=`<div class="product">
+      <b>${r.c[1]?.v}</b><br>
+      Price: ₹${r.c[2]?.v}<br>
+      Stock: ${r.c[3]?.v}
+    </div>`;
+  });
+  document.getElementById("productList").innerHTML=html||"No products";
+});
+</script>
+
+<!-- ================= KPI ================= -->
+<script>
+const today=new Date().toISOString().slice(0,10);
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=orders`)
+.then(r=>r.text()).then(t=>{
+  const j=JSON.parse(t.substring(t.indexOf('{'),t.lastIndexOf('}')+1));
+  let o=0,s=0,p=0,b=0;
+  j.table.rows.forEach(r=>{
+    if(!r.c) return;
+    let d=r.c[1]?.v;
+    if(d instanceof Date) d=d.toISOString().slice(0,10);
+    if(d!==today) return;
+    if((r.c[3]?.v||"").toLowerCase()!==company) return;
+    o++; s+=+r.c[7]?.v||0; p+=+r.c[8]?.v||0; b+=+r.c[9]?.v||0;
+  });
+  kpiOrders.innerText=o;
+  kpiSales.innerText=s;
+  kpiPaid.innerText=p;
+  kpiBalance.innerText=b;
+});
+</script>
 
 </body>
 </html>
