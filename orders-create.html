@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Create Order – Pardhu ERP</title>
+<title>Create Order</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -21,45 +21,25 @@ body{
 .container{
   padding:15px;
 }
-.back{
-  color:#25d366;
-  cursor:pointer;
-  margin-bottom:10px;
-  display:inline-block;
-  font-weight:bold;
-}
-.form{
-  background:#fff;
-  padding:15px;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-label{
-  font-size:13px;
-  color:#555;
-}
-input, select{
+input, select, button{
   width:100%;
   padding:12px;
-  margin:6px 0 12px;
-  border-radius:8px;
-  border:1px solid #ddd;
+  margin-bottom:10px;
+  border-radius:6px;
+  border:1px solid #ccc;
   font-size:14px;
 }
 button{
-  width:100%;
-  padding:14px;
   background:#25d366;
   color:#fff;
   border:none;
-  border-radius:10px;
-  font-size:16px;
-  font-weight:bold;
   cursor:pointer;
 }
-.small{
-  font-size:12px;
-  color:#777;
+.back{
+  color:#25d366;
+  margin-bottom:10px;
+  display:inline-block;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -72,12 +52,12 @@ const role = localStorage.getItem("role");
 const modules = (localStorage.getItem("modules") || "").toLowerCase();
 
 if(!role){
-  window.location.href = "index.html";
+  window.location.href="index.html";
 }
 
 if(modules !== "all" && !modules.split(",").includes("orders")){
   alert("Access denied");
-  window.location.href = "dashboard.html";
+  window.location.href="dashboard.html";
 }
 </script>
 
@@ -86,58 +66,57 @@ if(modules !== "all" && !modules.split(",").includes("orders")){
 <div class="container">
   <div class="back" onclick="history.back()">← Back</div>
 
-  <div class="form">
-    
-    <label>Customer Name</label>
-    <input type="text" id="customer" placeholder="Customer name">
+  <input id="customer" placeholder="Customer Name">
+  <input id="product" placeholder="Product Name">
+  <input id="product_id" placeholder="Product ID">
+  <input id="qty" type="number" placeholder="Quantity">
+  <input id="total" type="number" placeholder="Total Amount">
+  <input id="paid" type="number" placeholder="Paid Amount">
 
-    <label>Product Name</label>
-    <input type="text" id="product" placeholder="Product">
+  <select id="payment_mode">
+    <option value="cash">Cash</option>
+    <option value="upi">UPI</option>
+    <option value="card">Card</option>
+  </select>
 
-    <label>Product ID</label>
-    <input type="number" id="product_id" placeholder="Product ID">
-
-    <label>Quantity</label>
-    <input type="number" id="qty" placeholder="Quantity">
-
-    <label>Total Amount</label>
-    <input type="number" id="total" placeholder="Total amount">
-
-    <label>Paid Amount</label>
-    <input type="number" id="paid" placeholder="Paid amount">
-
-    <label>Payment Mode</label>
-    <select id="payment_mode">
-      <option value="cash">Cash</option>
-      <option value="upi">UPI</option>
-      <option value="card">Card</option>
-    </select>
-
-    <label>Order Type</label>
-    <select id="order_type">
-      <option value="offline">Offline</option>
-      <option value="online">Online</option>
-    </select>
-
-    <label>Status</label>
-    <select id="status">
-      <option value="pending">Pending</option>
-      <option value="completed">Completed</option>
-      <option value="cancelled">Cancelled</option>
-    </select>
-
-    <button onclick="submitOrder()">Save Order</button>
-
-    <p class="small">
-      Order will be saved to Google Sheet (next step)
-    </p>
-
-  </div>
+  <button onclick="createOrder()">Create Order</button>
 </div>
 
 <script>
-function submitOrder(){
-  alert("UI ready ✔\nNext step: Save to Google Sheet");
+const API_URL = "https://script.google.com/macros/s/AKfycbzrwM8NxpGcgTpX0UUoElfs94U-CGHnFiL7S2zWtkWwGq2p2GqAbRlPOWfnpEo7hBbHFw/exec";
+
+function createOrder(){
+  const data = {
+    customer: customer.value,
+    product: product.value,
+    product_id: product_id.value,
+    qty: qty.value,
+    total: total.value,
+    paid: paid.value,
+    balance: (total.value - paid.value),
+    company: localStorage.getItem("company"),
+    payment_mode: payment_mode.value,
+    created_by: localStorage.getItem("user")
+  };
+
+  fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(result => {
+    if(result.success){
+      alert("Order saved successfully. Order ID: " + result.order_id);
+      location.href = "orders.html";
+    } else {
+      alert("Error from server: " + result.error);
+    }
+  })
+  .catch(err => {
+    alert("Network / API error");
+    console.error(err);
+  });
 }
 </script>
 
