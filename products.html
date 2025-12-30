@@ -6,44 +6,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:Arial;background:#f4f6f8}
-.header{background:#25d366;color:#fff;padding:15px;text-align:center}
-.container{padding:15px}
-.back{color:#25d366;margin-bottom:10px;display:inline-block;cursor:pointer}
-
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f4f6f8;
+}
+.header{
+  background:#25d366;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+}
+.container{
+  padding:15px;
+}
 .product{
   background:#fff;
   padding:12px;
   margin-bottom:10px;
   border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
-  font-size:14px;
 }
-
-.label{color:#555;font-size:12px}
-.value{font-weight:bold}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  color:#fff;
+}
+.active{ background:#4caf50; }
+.inactive{ background:#f44336; }
 
 button{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
   border:none;
-  border-radius:8px;
+  padding:10px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
+}
+.add-btn{
   background:#2196f3;
   color:#fff;
-  font-size:16px;
+  width:100%;
 }
 </style>
 </head>
 
 <body>
 
+<!-- ===== AUTH + RBAC ===== -->
 <script>
 const role = localStorage.getItem("role");
-const modules = (localStorage.getItem("modules")||"").toLowerCase();
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
 
-if(!role) location.replace("index.html");
-if(modules!=="all" && !modules.includes("products")){
+if(!role){
+  location.replace("index.html");
+}
+
+if(modules !== "all" && !modules.includes("products")){
   alert("Access denied");
   location.replace("dashboard.html");
 }
@@ -52,24 +72,26 @@ if(modules!=="all" && !modules.includes("products")){
 <div class="header">Products</div>
 
 <div class="container">
-  <div class="back" onclick="location.href='dashboard.html'">← Back</div>
 
   <!-- ADD PRODUCT (ADMIN / SUPER ONLY) -->
-  <div id="addProductBox" style="display:none">
-    <button onclick="location.href='product-add.html'">
-      ➕ Add Product
-    </button>
-  </div>
+  <script>
+    if(role === "admin" || role === "super"){
+      document.write(`
+        <button class="add-btn"
+          onclick="location.href='product-create.html'">
+          ➕ Add Product
+        </button>
+        <br><br>
+      `);
+    }
+  </script>
 
+  <!-- PRODUCT LIST -->
   <div id="productList">Loading...</div>
 </div>
 
-<script>
-if(role==="admin" || role==="super"){
-  document.getElementById("addProductBox").style.display="block";
-}
-</script>
-
+<!-- PRODUCTS LOGIC -->
 <script src="products.js"></script>
+
 </body>
 </html>
