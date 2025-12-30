@@ -11,31 +11,47 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
 
   let html = "";
 
-  json.table.rows.forEach(r=>{
+  json.table.rows.forEach(r => {
     if(!r.c) return;
 
-    const status = (r.c[8]?.v || "").toLowerCase();
-    if(status !== "active") return;
+    const productId      = r.c[0]?.v || "";
+    const name           = r.c[1]?.v || "";
+    const description    = r.c[2]?.v || "";
+    const hsn            = r.c[3]?.v || "";
+    const unit           = r.c[4]?.v || "";
+    const purchasePrice  = r.c[5]?.v || 0;
+    const salesPrice     = r.c[6]?.v || 0;
+    const gst            = r.c[7]?.v || 0;
+    const statusRaw      = r.c[8]?.v || "inactive";
+
+    const status = String(statusRaw).toLowerCase() === "active"
+      ? "active"
+      : "inactive";
 
     html += `
       <div class="product">
-        <div><span class="label">Product</span><br>
-        <span class="value">${r.c[1]?.v || ""}</span></div><br>
+        <b>${name}</b><br><br>
 
-        <div><span class="label">HSN</span> : ${r.c[3]?.v || "-"}</div>
-        <div><span class="label">Unit</span> : ${r.c[4]?.v || "-"}</div>
-        <div><span class="label">Purchase</span> : ₹${r.c[5]?.v || 0}</div>
-        <div><span class="label">Sales</span> : ₹${r.c[6]?.v || 0}</div>
-        <div><span class="label">GST</span> : ${r.c[7]?.v || 0}%</div>
+        Product ID: ${productId}<br>
+        HSN Code: ${hsn}<br>
+        Unit: ${unit}<br>
+        Purchase Price: ₹${purchasePrice}<br>
+        Sales Price: ₹${salesPrice}<br>
+        GST: ${gst}%<br><br>
+
+        <span class="badge ${status}">
+          ${status.toUpperCase()}
+        </span>
       </div>
     `;
   });
 
   document.getElementById("productList").innerHTML =
-    html || "No active products";
+    html || "No products found";
 
 })
-.catch(()=>{
+.catch(err=>{
+  console.error("PRODUCT LOAD ERROR:", err);
   document.getElementById("productList").innerText =
     "Error loading products";
 });
