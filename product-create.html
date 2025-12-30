@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add Product</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f4f6f8;
+}
+.header{
+  background:#25d366;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+}
+.container{
+  padding:15px;
+}
+input, select, textarea, button{
+  width:100%;
+  padding:14px;
+  margin-bottom:12px;
+  font-size:15px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+textarea{
+  resize:none;
+}
+button{
+  background:#2196f3;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+button:disabled{
+  background:#9e9e9e;
+}
+.back{
+  color:#25d366;
+  margin-bottom:10px;
+  display:inline-block;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<script>
+/* ===== AUTH + RBAC ===== */
+const role = localStorage.getItem("role");
+const modules = (localStorage.getItem("modules") || "").toLowerCase();
+
+if(!role){
+  location.replace("index.html");
+}
+
+if(!(role === "admin" || role === "super")){
+  alert("Access denied");
+  location.replace("products.html");
+}
+</script>
+
+<div class="header">Add Product</div>
+
+<div class="container">
+  <div class="back" onclick="location.href='products.html'">← Back</div>
+
+  <input id="product_name" placeholder="Product Name *">
+  <textarea id="description" placeholder="Description"></textarea>
+
+  <input id="hsn_code" placeholder="HSN Code">
+  <input id="unit" placeholder="Unit (pcs, kg, box)">
+  <input id="purchase_price" type="number" placeholder="Purchase Price">
+  <input id="sales_price" type="number" placeholder="Sales Price">
+  <input id="gst_percent" type="number" placeholder="GST %">
+
+  <input id="stock" type="number" placeholder="Opening Stock">
+  <input id="category" placeholder="Category">
+
+  <select id="active">
+    <option value="yes">Active</option>
+    <option value="no">Inactive</option>
+  </select>
+
+  <button id="saveBtn" onclick="saveProduct()">Save Product</button>
+</div>
+
+<script>
+const API_URL = "PASTE_YOUR_PRODUCT_API_URL_HERE"; // Apps Script later
+
+let saving = false;
+
+function saveProduct(){
+  if(saving) return;
+
+  if(!product_name.value.trim()){
+    alert("Product name required");
+    return;
+  }
+
+  saving = true;
+  saveBtn.disabled = true;
+  saveBtn.innerText = "Saving...";
+
+  const data = new URLSearchParams();
+  data.append("product_name", product_name.value.trim());
+  data.append("description", description.value.trim());
+  data.append("hsn_code", hsn_code.value.trim());
+  data.append("unit", unit.value.trim());
+  data.append("purchase_price", purchase_price.value || 0);
+  data.append("sales_price", sales_price.value || 0);
+  data.append("gst_percent", gst_percent.value || 0);
+  data.append("stock", stock.value || 0);
+  data.append("category", category.value.trim());
+  data.append("active", active.value);
+  data.append("created_by", localStorage.getItem("user"));
+
+  fetch(API_URL,{
+    method:"POST",
+    body:data
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.success){
+      alert("✅ Product added successfully");
+      location.replace("products.html");
+    }else{
+      alert("❌ Error: " + res.error);
+    }
+  })
+  .catch(err=>{
+    console.error(err);
+    alert("❌ Network error");
+  })
+  .finally(()=>{
+    saving = false;
+    saveBtn.disabled = false;
+    saveBtn.innerText = "Save Product";
+  });
+}
+</script>
+
+</body>
+</html>
