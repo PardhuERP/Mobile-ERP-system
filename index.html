@@ -6,52 +6,119 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* ===== FULL SCREEN BLUE BACKGROUND ===== */
 body{
   font-family:Arial, sans-serif;
-  background:#f4f6f8;
+  background:#0d47a1; /* blue background */
   margin:0;
   height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
 }
+
+/* ===== LOGIN BOX ===== */
 .box{
   background:#fff;
   width:90%;
-  max-width:360px;
-  padding:25px;
-  border-radius:12px;
-  box-shadow:0 5px 20px rgba(0,0,0,0.15);
+  max-width:380px;
+  padding:30px;
+  border-radius:14px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.25);
 }
-h2{text-align:center;margin-bottom:20px;}
+
+/* ===== HEADLINE ===== */
+h2{
+  text-align:center;
+  margin-bottom:25px;
+  font-size:28px;
+  color:#0d47a1;
+  letter-spacing:1px;
+}
+
+/* ===== INPUT FIELDS (25% BIGGER) ===== */
 input{
   width:100%;
-  padding:14px;
-  margin-bottom:12px;
-  font-size:16px;
+  padding:18px;          /* increased */
+  margin-bottom:14px;
+  font-size:18px;        /* increased */
+  border-radius:8px;
+  border:1px solid #ccc;
 }
+
+/* Disabled Company ID */
+input[disabled]{
+  background:#eee;
+  color:#777;
+}
+
+/* ===== LOGIN BUTTON ===== */
 button{
   width:100%;
-  padding:14px;
+  padding:16px;
   background:#25D366;
   color:#fff;
   border:none;
-  border-radius:8px;
-  font-size:18px;
+  border-radius:10px;
+  font-size:20px;
+  cursor:pointer;
 }
-.err{color:red;text-align:center;display:none;}
+
+button:hover{
+  opacity:0.9;
+}
+
+/* ===== KEEP SIGNED IN ===== */
+.keep{
+  display:flex;
+  align-items:center;
+  font-size:14px;
+  margin-bottom:15px;
+  color:#333;
+}
+.keep input{
+  width:auto;
+  margin-right:8px;
+}
+
+/* ===== ERROR ===== */
+.err{
+  color:red;
+  text-align:center;
+  display:none;
+  margin-top:10px;
+}
 </style>
 </head>
 
 <body>
+
 <div class="box">
   <h2>Pardhu ERP</h2>
+
+  <!-- Company ID (temporary disabled) -->
+  <input id="company" placeholder="Company ID" disabled value="MASTER">
+
+  <!-- Username -->
   <input id="user" placeholder="Username">
-  <input id="pin" type="password" placeholder="PIN">
+
+  <!-- Password -->
+  <input id="pin" type="password" placeholder="Password">
+
+  <!-- Keep me signed in -->
+  <div class="keep">
+    <input type="checkbox" id="remember">
+    <label for="remember">Keep me signed in</label>
+  </div>
+
+  <!-- Login -->
   <button onclick="login()">Login</button>
+
   <p class="err" id="err">Invalid login</p>
 </div>
 
+<!-- OLD SCRIPT KEPT -->
 <script src="auth.js"></script>
+
 </body>
 </html>
