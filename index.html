@@ -39,9 +39,10 @@ h2{
 /* ===== INPUT FIELDS (25% BIGGER) ===== */
 input{
   width:100%;
-  padding:18px;          /* increased */
+  box-sizing:border-box;   /* ✅ THIS FIX */
+  padding:16px;
   margin-bottom:14px;
-  font-size:18px;        /* increased */
+  font-size:18px;
   border-radius:8px;
   border:1px solid #ccc;
 }
