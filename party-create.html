@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Add Party</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+body{margin:0;font-family:Arial;background:#f4f6f8}
+.header{background:#25d366;color:#fff;padding:15px;text-align:center}
+.container{padding:15px}
+input,select,button{
+  width:100%;
+  padding:14px;
+  margin-bottom:12px;
+  font-size:15px;
+  border-radius:8px;
+  border:1px solid #ccc
+}
+button{
+  background:#2196f3;
+  color:#fff;
+  border:none
+}
+</style>
+</head>
+
+<body>
+
+<script>
+const role = localStorage.getItem("role");
+if(!(role === "admin" || role === "super")){
+  alert("Access denied");
+  location.replace("parties.html");
+}
+</script>
+
+<div class="header">Add Party</div>
+
+<div class="container">
+  <input id="party_name" placeholder="Party Name *">
+  <select id="party_type">
+    <option value="customer">Customer</option>
+    <option value="supplier">Supplier</option>
+    <option value="both">Both</option>
+  </select>
+  <input id="phone" placeholder="Phone">
+  <input id="email" placeholder="Email">
+  <input id="gst" placeholder="GST Number">
+  <input id="balance" type="number" placeholder="Opening Balance">
+  <select id="status">
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+  </select>
+
+  <button onclick="saveParty()">Save Party</button>
+</div>
+
+<script>
+const API_URL = "PASTE_PARTY_API_URL_HERE";
+
+function saveParty(){
+  if(!party_name.value.trim()){
+    alert("Party name required");
+    return;
+  }
+
+  const data = new URLSearchParams();
+  data.append("party_name", party_name.value);
+  data.append("party_type", party_type.value);
+  data.append("phone", phone.value);
+  data.append("email", email.value);
+  data.append("gst", gst.value);
+  data.append("opening_balance", balance.value || 0);
+  data.append("status", status.value);
+  data.append("created_by", localStorage.getItem("user"));
+
+  fetch(API_URL,{
+    method:"POST",
+    body:data
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.success){
+      alert("Party added");
+      location.replace("parties.html");
+    }else{
+      alert(res.error);
+    }
+  })
+}
+</script>
+
+</body>
+</html>
